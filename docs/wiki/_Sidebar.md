@@ -7,7 +7,9 @@
 - [[Notion-Integration]]
 - [[Atlassian-Integration]]
 - [[Linear-Integration]]
+- [[Slack-Audit]]
 - [[Release-Notes]]
+
 
 ## 한국어
 
@@ -18,4 +20,5 @@
 - [[Notion-Integration.ko]]
 - [[Atlassian-Integration.ko]]
 - [[Linear-Integration.ko]]
+- [[Slack-Audit.ko]]
 - [[Release-Notes.ko]]

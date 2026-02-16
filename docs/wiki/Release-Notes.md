@@ -1,6 +1,8 @@
 # Release Notes
 
+
 ## 2026-02-16
+
 
 ### Monorepo Expansion
 
@@ -32,6 +34,7 @@
   - `GET /v1/raw/search`, `GET /v1/raw/messages/:id`
   - audit events `raw.search`, `raw.view`
 
+
 ### Highlights
 
 - Replaced SQLite runtime storage with PostgreSQL.
@@ -40,6 +43,7 @@
 - Added `project_key` override for `remember`/`recall`.
 - Added controlled raw search (snippet-only, max chars, audit logs).
 - Added Docker assets and external DB support.
+
 
 ### MCP Compatibility
 

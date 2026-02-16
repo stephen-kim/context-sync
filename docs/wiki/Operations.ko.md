@@ -1,10 +1,12 @@
 # 운영 가이드
 
+
 ## 데이터/리콜 모델
 
 - 기본 recall은 `memories`만 조회
 - raw 임포트 원문은 기본 recall과 분리
 - raw 조회는 옵션 도구에서 snippet-only로 제공
+
 
 ## Raw 임포트 파이프라인
 
@@ -21,6 +23,7 @@
 - `source=claude`: Claude JSON export 전용 파서 (역할 정규화: `human -> user`, `assistant -> assistant`)
 - 그 외: generic 텍스트 청크 파서 fallback
 
+
 ## 프로젝트 자동 선택
 
 기본 우선순위:
@@ -34,6 +37,7 @@
 - key prefix
 - `project_mappings`
 
+
 ## Admin UI 운영 체크리스트
 
 - 워크스페이스/프로젝트/멤버 관리
@@ -41,6 +45,7 @@
 - 임포트 실행 후 staged memory 커밋
 - raw snippet 검색
 - audit 로그(`raw.search`, `raw.view`) 검토
+
 
 ## 자주 쓰는 명령어
 
@@ -51,6 +56,7 @@ pnpm db:seed
 pnpm dev
 pnpm test:workspace
 ```
+
 
 ## 백업/복구 기본 권장
 

@@ -1,7 +1,7 @@
 import knex from 'knex';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
-import { resolveDatabaseConnection } from './db-connection.js';
+import { resolveDatabaseConnection } from './db/db-connection.js';
 
 async function runMigrations(): Promise<void> {
   const __filename = fileURLToPath(import.meta.url);

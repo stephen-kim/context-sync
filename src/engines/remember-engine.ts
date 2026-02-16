@@ -2,7 +2,7 @@ import type { Knex } from 'knex';
 import { randomUUID } from 'crypto';
 import simpleGit from 'simple-git';
 import { ReadFileEngine } from './read-file-engine.js';
-import { normalizeProjectKey } from './project-key.js';
+import { normalizeProjectKey } from '../project/project-key.js';
 
 interface RememberInput {
   type: 'active_work' | 'constraint' | 'problem' | 'goal' | 'decision' | 'note' | 'caveat';

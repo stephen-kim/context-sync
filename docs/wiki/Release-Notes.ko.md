@@ -1,6 +1,8 @@
 # 릴리즈 노트
 
+
 ## 2026-02-16
+
 
 ### 모노레포 확장
 
@@ -23,6 +25,7 @@
   - `/v1/raw/search`, `/v1/raw/messages/:id`
   - audit 이벤트 `raw.search`, `raw.view`
 
+
 ### 핵심 변경점
 
 - 런타임 저장소를 SQLite에서 PostgreSQL로 전환
@@ -30,6 +33,7 @@
 - 프로젝트 자동 선택(resolver) + key 기반 스코프 모델 강화
 - 기본 recall은 memories-only 유지
 - raw 검색은 snippet-only + 길이 제한 + 감사 로그 적용
+
 
 ### MCP 호환성
 

@@ -1,5 +1,6 @@
 # Atlassian 연동 (Jira + Confluence)
 
+
 ## 목적
 
 Jira와 Confluence를 MCP 워크플로의 외부 컨텍스트 소스로 사용합니다.
@@ -7,20 +8,111 @@ Jira와 Confluence를 MCP 워크플로의 외부 컨텍스트 소스로 사용�
 - Confluence: 문서 컨텍스트 검색/열람
 - 둘 다 read 중심 + audit 추적
 
-## 서버 설정
 
-`memory-core` 환경변수:
+## 준비물
 
-- `MEMORY_CORE_JIRA_BASE_URL` (예: `https://your-org.atlassian.net`)
-- `MEMORY_CORE_JIRA_EMAIL`
-- `MEMORY_CORE_JIRA_API_TOKEN`
-- `MEMORY_CORE_CONFLUENCE_BASE_URL` (예: `https://your-org.atlassian.net` 또는 `.../wiki`)
-- `MEMORY_CORE_CONFLUENCE_EMAIL`
-- `MEMORY_CORE_CONFLUENCE_API_TOKEN`
+- Atlassian Cloud 사이트 URL (예: `https://your-org.atlassian.net`)
+- Atlassian 계정 이메일
+- Atlassian API 토큰
+  - Atlassian 계정 보안 페이지에서 생성
+- memory-core `workspace_key` (예: `personal`)
 
-설정이 없으면 관련 엔드포인트는 비활성 상태이며 명확한 오류를 반환합니다.
 
-서버 env가 비어 있어도 Admin UI의 워크스페이스별 Integration 설정(`/v1/integrations`)으로 저장/사용할 수 있습니다.
+## 환경변수 (fallback)
+
+- Jira
+  - `MEMORY_CORE_JIRA_BASE_URL`
+  - `MEMORY_CORE_JIRA_EMAIL`
+  - `MEMORY_CORE_JIRA_API_TOKEN`
+- Confluence
+  - `MEMORY_CORE_CONFLUENCE_BASE_URL`
+  - `MEMORY_CORE_CONFLUENCE_EMAIL`
+  - `MEMORY_CORE_CONFLUENCE_API_TOKEN`
+
+
+## 단계별 설정
+
+1. Atlassian API 토큰 생성
+- Jira/Confluence 모두 동일 토큰을 사용할 수 있습니다.
+- 토큰은 시크릿 매니저에 보관하세요.
+
+2. Admin UI에서 저장
+- `admin-ui` -> Integrations로 이동
+- Jira 저장:
+  - `enabled=true`
+  - `base_url`
+  - `email`
+  - `api_token`
+- Confluence 저장:
+  - `enabled=true`
+  - `base_url` (`https://your-org.atlassian.net` 또는 `https://your-org.atlassian.net/wiki`)
+  - `email`
+  - `api_token`
+- 선택:
+  - `write_on_commit`
+  - `write_on_merge`
+  - 현재는 provider write가 아니라 hook/audit 경로 제어 용도입니다.
+
+3. API로 저장(선택)
+
+```bash
+curl -X PUT "$MEMORY_CORE_URL/v1/integrations" \
+  -H "Authorization: Bearer $MEMORY_CORE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "workspace_key": "personal",
+    "provider": "jira",
+    "enabled": true,
+    "reason": "팀 Jira 컨텍스트 연동",
+    "config": {
+      "base_url": "https://your-org.atlassian.net",
+      "email": "you@company.com",
+      "api_token": "atlassian-token"
+    }
+  }'
+```
+
+```bash
+curl -X PUT "$MEMORY_CORE_URL/v1/integrations" \
+  -H "Authorization: Bearer $MEMORY_CORE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "workspace_key": "personal",
+    "provider": "confluence",
+    "enabled": true,
+    "reason": "팀 Confluence 문서 컨텍스트 연동",
+    "config": {
+      "base_url": "https://your-org.atlassian.net/wiki",
+      "email": "you@company.com",
+      "api_token": "atlassian-token"
+    }
+  }'
+```
+
+4. API 검증
+
+```bash
+curl -G "$MEMORY_CORE_URL/v1/jira/search" \
+  -H "Authorization: Bearer $MEMORY_CORE_API_KEY" \
+  --data-urlencode "workspace_key=personal" \
+  --data-urlencode "q=deployment incident" \
+  --data-urlencode "limit=5"
+```
+
+```bash
+curl -G "$MEMORY_CORE_URL/v1/confluence/search" \
+  -H "Authorization: Bearer $MEMORY_CORE_API_KEY" \
+  --data-urlencode "workspace_key=personal" \
+  --data-urlencode "q=runbook" \
+  --data-urlencode "limit=5"
+```
+
+5. MCP 도구 검증
+- `jira_search({ q, limit? })`
+- `jira_read({ issue_key, max_chars? })`
+- `confluence_search({ q, limit? })`
+- `confluence_read({ page_id, max_chars? })`
+
 
 ## API 엔드포인트
 
@@ -32,13 +124,6 @@ Confluence:
 - `GET /v1/confluence/search?workspace_key=<ws>&q=<query>&limit=10`
 - `GET /v1/confluence/read?workspace_key=<ws>&page_id=<id-or-url>&max_chars=4000`
 
-## MCP 도구
-
-`mcp-adapter` 제공:
-- `jira_search({ q, limit? })`
-- `jira_read({ issue_key, max_chars? })`
-- `confluence_search({ q, limit? })`
-- `confluence_read({ page_id, max_chars? })`
 
 ## 권한 및 감사 로그
 
@@ -49,7 +134,20 @@ Confluence:
   - `confluence.search`
   - `confluence.read`
 
-## 권장 방식
 
-- 기본 recall은 memory-first(`remember/recall`)로 유지
-- Jira/Confluence는 외부 컨텍스트 조회 용도로 사용
+## env vs Admin UI 우선순위
+
+- 기본: Admin UI의 워크스페이스 설정이 env fallback보다 우선합니다.
+- 잠금 옵션:
+  - `MEMORY_CORE_INTEGRATION_LOCKED_PROVIDERS=jira,confluence`
+  - 잠금 시 Admin UI 수정은 거부되고 env-only 모드가 강제됩니다.
+
+
+## 트러블슈팅
+
+- `Invalid API key`
+  - `Authorization: Bearer <key>` 확인
+- `Integration not configured` 류 오류
+  - 워크스페이스에 `base_url`, `email`, `api_token` 저장 여부 확인
+- search는 되는데 read 실패
+  - Atlassian 권한/리소스 접근 가능 여부와 issue key/page id 확인

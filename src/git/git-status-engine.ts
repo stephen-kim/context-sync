@@ -15,7 +15,7 @@
 
 import simpleGit, { SimpleGit, StatusResult } from 'simple-git';
 import * as path from 'path';
-import { ReadFileEngine } from './read-file-engine.js';
+import { ReadFileEngine } from '../engines/read-file-engine.js';
 
 interface FileChange {
   path: string;

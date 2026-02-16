@@ -4,7 +4,7 @@
  */
 
 import { Client } from '@notionhq/client';
-import type { Decision, ProjectContext } from './types.js';
+import type { Decision, ProjectContext } from '../core/types.js';
 
 export interface NotionConfig {
   token: string;

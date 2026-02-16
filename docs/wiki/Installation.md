@@ -1,11 +1,13 @@
 # Installation
 
+
 ## Prerequisites
 
 - Node.js 20+
 - pnpm 9+
 - PostgreSQL 15+ (local container or external DB)
 - Docker / Docker Compose (recommended for local bootstrap)
+
 
 ## Environment Variables
 
@@ -20,6 +22,7 @@ Key variables:
 - `MEMORY_CORE_URL`
 - `MEMORY_CORE_WORKSPACE_KEY`
 - `NEXT_PUBLIC_MEMORY_CORE_URL`
+
 
 ### API Key Variables (Important)
 
@@ -39,11 +42,17 @@ Recommended setup:
 - Local/dev: set both to the same strong value.
 - Production: use `MEMORY_CORE_API_KEY` for runtime, and run `db:seed` with a controlled `MEMORY_CORE_SEED_ADMIN_KEY` only when needed.
 
+
 ## Compose Files
 
 - `docker-compose.yml`: image-based deployment (Dockge/server)
 - `docker-compose.dev.yml`: source-build local development
-- Required for image-based compose: `MEMORY_CORE_IMAGE`, `MCP_ADAPTER_IMAGE`, `ADMIN_UI_IMAGE`
+- Optional image overrides: `MEMORY_CORE_IMAGE`, `MCP_ADAPTER_IMAGE`, `ADMIN_UI_IMAGE`
+- Default images:
+  - `ghcr.io/stephen-kim/context-sync-memory-core:latest`
+  - `ghcr.io/stephen-kim/context-sync-mcp-adapter:latest`
+  - `ghcr.io/stephen-kim/context-sync-admin-ui:latest`
+
 
 ## Local Development (source-build containers)
 
@@ -57,6 +66,7 @@ Local endpoints:
 - memory-core: `http://localhost:8080`
 - admin-ui: `http://localhost:3000`
 
+
 ## Local Development (local processes + DB container)
 
 ```bash
@@ -67,6 +77,7 @@ pnpm db:migrate
 pnpm db:seed
 pnpm dev
 ```
+
 
 ## External DB (RDS, Cloud Postgres, etc.)
 
@@ -88,11 +99,13 @@ DATABASE_URL=postgres://<user>:<pass>@<rds-endpoint>:5432/<db>?sslmode=require
 docker compose up -d
 ```
 
+
 ## Docker Notes
 
 - In containers, do not use `localhost` for inter-service calls.
 - Use compose service names (`memory-core`, `postgres`).
 - Browser-facing URL (`NEXT_PUBLIC_MEMORY_CORE_URL`) should be `localhost` or your domain.
+
 
 ## Codex MCP Adapter Setup
 
@@ -105,7 +118,7 @@ args = ["--filter", "@context-sync/mcp-adapter", "start"]
 
 [mcp_servers.memory-core.env]
 MEMORY_CORE_URL = "http://127.0.0.1:8080"
-MEMORY_CORE_API_KEY = "<strong-runtime-key>"
+MEMORY_CORE_API_KEY = "<runtime-api-key>"
 MEMORY_CORE_WORKSPACE_KEY = "personal"
 MCP_ADAPTER_LOG_LEVEL = "error"
 ```

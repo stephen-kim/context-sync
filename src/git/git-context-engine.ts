@@ -15,7 +15,7 @@
 
 import simpleGit, { SimpleGit, DiffResult } from 'simple-git';
 import * as path from 'path';
-import { ReadFileEngine } from './read-file-engine.js';
+import { ReadFileEngine } from '../engines/read-file-engine.js';
 
 interface GitContext {
   branch: string;

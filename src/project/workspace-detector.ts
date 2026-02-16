@@ -4,9 +4,9 @@ import * as fs from 'fs';
 import { promises as fsAsync } from 'fs';
 import * as path from 'path';
 import * as chokidar from 'chokidar';
-import type { Storage } from './storage.js';
+import type { Storage } from '../db/storage.js';
 import { ProjectDetector } from './project-detector.js';
-import { logger } from './logger.js';
+import { logger } from '../core/logger.js';
 
 export interface FileContent {
   path: string;

@@ -13,25 +13,25 @@ import {
   ListResourcesRequestSchema,
   ReadResourceRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import { Storage } from './storage.js';
-import { ProjectDetector } from './project-detector.js';
-import { WorkspaceDetector } from './workspace-detector.js';
-import { CORE_TOOLS } from './core-tools.js';
-import type { ProjectIdentity, RememberInput, RecallResult } from './context-layers.js';
-import { ProjectProfiler } from './project-profiler.js';
-import { RecallEngine } from './recall-engine.js';
-import { RememberEngine } from './remember-engine.js';
-import { ReadFileEngine } from './read-file-engine.js';
-import { SearchEngine } from './search-engine.js';
-import { StructureEngine } from './structure-engine.js';
-import { GitStatusEngine } from './git-status-engine.js';
-import { GitContextEngine } from './git-context-engine.js';
-import { GitIntegration } from './git-integration.js';
-import { GitHookManager } from './git-hook-manager.js';
-import { NotionIntegration } from './notion-integration.js';
-import { createNotionHandlers } from './notion-handlers.js';
-import { logger } from './logger.js';
-import { normalizeProjectKey } from './project-key.js';
+import { Storage } from './db/storage.js';
+import { ProjectDetector } from './project/project-detector.js';
+import { WorkspaceDetector } from './project/workspace-detector.js';
+import { CORE_TOOLS } from './core/core-tools.js';
+import type { ProjectIdentity, RememberInput, RecallResult } from './core/context-layers.js';
+import { ProjectProfiler } from './project/project-profiler.js';
+import { RecallEngine } from './engines/recall-engine.js';
+import { RememberEngine } from './engines/remember-engine.js';
+import { ReadFileEngine } from './engines/read-file-engine.js';
+import { SearchEngine } from './engines/search-engine.js';
+import { StructureEngine } from './engines/structure-engine.js';
+import { GitStatusEngine } from './git/git-status-engine.js';
+import { GitContextEngine } from './git/git-context-engine.js';
+import { GitIntegration } from './git/git-integration.js';
+import { GitHookManager } from './git/git-hook-manager.js';
+import { NotionIntegration } from './integrations/notion-integration.js';
+import { createNotionHandlers } from './integrations/notion-handlers.js';
+import { logger } from './core/logger.js';
+import { normalizeProjectKey } from './project/project-key.js';
 import {
   MCP_PROMPTS,
   MCP_RESOURCES,

@@ -1,5 +1,6 @@
 # Security and MCP I/O
 
+
 ## MCP stdio Policy
 
 For MCP servers/adapters:
@@ -8,12 +9,14 @@ For MCP servers/adapters:
 
 Do not print banners, startup chatter, or migration logs to stdout.
 
+
 ## Raw Data Guardrails
 
 - Raw search returns snippets only.
 - Single raw message view is snippet-only.
 - `max_chars` limit is enforced.
 - No endpoint should return full raw session transcript by default.
+
 
 ## Access Control
 
@@ -22,6 +25,7 @@ Do not print banners, startup chatter, or migration logs to stdout.
   - admin or project member
   - workspace-wide raw search requires workspace admin/owner
 
+
 ## Audit Requirements
 
 Record and review:
@@ -29,6 +33,7 @@ Record and review:
 - `raw.view`
 
 Audit logs should include actor, target, and timestamp.
+
 
 ## Deployment Security Notes
 

@@ -1,5 +1,6 @@
 # context-sync Wiki Home
 
+
 ## Overview
 
 context-sync is a team-scalable Memory Core system for MCP clients.
@@ -14,6 +15,7 @@ Core principles:
 - Default recall: curated `memories` only
 - Optional raw search: snippet-only with audit logs
 
+
 ## Read Next
 
 - [Installation](Installation)
@@ -22,8 +24,10 @@ Core principles:
 - [Notion Integration](Notion-Integration)
 - [Atlassian Integration](Atlassian-Integration)
 - [Linear Integration](Linear-Integration)
+- [Slack Audit Integration](Slack-Audit)
 - [Release Notes](Release-Notes)
 - [Installation (Korean)](Installation.ko)
+
 
 ## API Summary
 

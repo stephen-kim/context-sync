@@ -1,10 +1,12 @@
 # Operations
 
+
 ## Data and Recall Model
 
 - Default recall reads from `memories` only.
 - Raw imported transcripts are separated from default recall flow.
 - Optional raw tools return snippets only.
+
 
 ## Raw Import Pipeline
 
@@ -21,6 +23,7 @@ Supported parser behavior:
 - `source=claude`: Claude JSON export parser (role normalization: `human -> user`, `assistant -> assistant`)
 - fallback: generic text chunk parser
 
+
 ## Project Resolution
 
 Default order:
@@ -34,6 +37,7 @@ Configured at workspace level:
 - key prefixes
 - `project_mappings`
 
+
 ## Admin UI Checklist
 
 - Manage workspace/project/member
@@ -41,6 +45,7 @@ Configured at workspace level:
 - Run imports and commit staged memories
 - Execute raw snippet search
 - Review audit logs (`raw.search`, `raw.view`)
+
 
 ## Useful Commands
 
@@ -51,6 +56,7 @@ pnpm db:seed
 pnpm dev
 pnpm test:workspace
 ```
+
 
 ## Backup/Recovery Baseline
 

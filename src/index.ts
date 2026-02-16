@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { ContextSyncServer } from './server.js';
-import { logger } from './logger.js';
+import { logger } from './core/logger.js';
 
 async function main() {
   const databaseUrlIndex = process.argv.indexOf('--database-url');

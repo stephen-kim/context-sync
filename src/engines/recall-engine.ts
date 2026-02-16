@@ -1,5 +1,5 @@
 import type { Knex } from 'knex';
-import { normalizeProjectKey } from './project-key.js';
+import { normalizeProjectKey } from '../project/project-key.js';
 
 interface ContextItem {
   projectKey: string;

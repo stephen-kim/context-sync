@@ -3,9 +3,9 @@
 import * as fs from 'fs';
 import { promises as fsAsync } from 'fs';
 import * as path from 'path';
-import type { Storage } from './storage.js';
+import type { Storage } from '../db/storage.js';
 import { PathNormalizer } from './path-normalizer.js';
-import { logger } from './logger.js';
+import { logger } from '../core/logger.js';
 
 export interface ProjectMetadata {
   name: string;

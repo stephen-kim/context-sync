@@ -1,6 +1,6 @@
 import knex, { Knex } from 'knex';
-import type { ProjectContext } from './types.js';
-import { normalizeProjectKey } from './project-key.js';
+import type { ProjectContext } from '../core/types.js';
+import { normalizeProjectKey } from '../project/project-key.js';
 import { resolveDatabaseConnection } from './db-connection.js';
 
 type ProjectRow = {

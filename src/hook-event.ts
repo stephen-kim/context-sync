@@ -1,9 +1,9 @@
 import { execSync } from 'child_process';
 import { randomUUID } from 'crypto';
 import knex from 'knex';
-import { resolveDatabaseConnection } from './db-connection.js';
-import { normalizeProjectKey } from './project-key.js';
-import { logger } from './logger.js';
+import { resolveDatabaseConnection } from './db/db-connection.js';
+import { normalizeProjectKey } from './project/project-key.js';
+import { logger } from './core/logger.js';
 
 type HookEvent = 'post-commit' | 'post-merge' | 'post-checkout';
 
