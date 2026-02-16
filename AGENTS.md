@@ -9,7 +9,6 @@
   - `apps/mcp-adapter`: MCP stdio adapter that calls memory-core over HTTP.
   - `apps/admin-ui`: Next.js App Router admin dashboard.
   - `packages/shared`: shared Zod schemas/types used by multiple apps.
-  - `infra/`: docker compose assets and env examples.
 - Legacy single-package code still exists in root `src/`, `bin/`, and `dist/`. Do not break legacy scripts unless the task explicitly requires it.
 
 
