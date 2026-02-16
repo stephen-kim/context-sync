@@ -17,3 +17,6 @@ Korean counterparts:
 - `docs/wiki/Release-Notes.ko.md`
 
 GitHub Wiki can be synced from these files.
+
+Command:
+- `pnpm wiki:sync`

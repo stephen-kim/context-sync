@@ -29,6 +29,7 @@
     "compose:dev:up": "docker compose -f docker-compose.dev.yml up -d",
     "compose:dev:up:localdb": "docker compose -f docker-compose.dev.yml --profile localdb up -d",
     "compose:dev:down": "docker compose -f docker-compose.dev.yml down",
+    "wiki:sync": "bash scripts/sync-wiki.sh",
     "start": "node dist/index.js",
     "watch": "tsx watch src/index.ts",
     "test": "node scripts/smoke-test.cjs",

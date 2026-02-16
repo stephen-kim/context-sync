@@ -62,4 +62,6 @@ vscode-extension/*.vsix
 
 # other
 hf_space/
-scripts/
+/scripts/*
+!/scripts/smoke-test.cjs
+!/scripts/sync-wiki.sh

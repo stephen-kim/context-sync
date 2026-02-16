@@ -59,6 +59,7 @@ AI 코딩 에이전트를 위한 프로덕션급 메모리 인프라.
 - Atlassian 연동: `docs/wiki/Atlassian-Integration.ko.md`
 - Linear 연동: `docs/wiki/Linear-Integration.ko.md`
 - Slack 감사 연동: `docs/wiki/Slack-Audit.ko.md`
+- 로컬 문서를 GitHub Wiki로 반영: `pnpm wiki:sync`
 
 
 ## 포크 정보

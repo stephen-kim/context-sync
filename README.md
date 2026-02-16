@@ -59,6 +59,7 @@ All setup and operations docs are maintained in the project wiki.
 - Atlassian Integration: `docs/wiki/Atlassian-Integration.md`
 - Linear Integration: `docs/wiki/Linear-Integration.md`
 - Slack Audit Integration: `docs/wiki/Slack-Audit.md`
+- Sync local docs to GitHub Wiki: `pnpm wiki:sync`
 
 
 ## Fork Information
