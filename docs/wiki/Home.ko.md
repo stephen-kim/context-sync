@@ -19,12 +19,17 @@ Claustrum은 MCP 클라이언트를 위한 팀 확장형 Memory Core 시스템�
 ## 다음 문서
 
 - [설치 가이드](Installation.ko)
+- [의존성 관리 (pnpm)](dependency-management)
 - [운영 가이드](Operations.ko)
 - [보안 및 MCP I/O](Security-and-MCP-IO.ko)
+- [OIDC SSO](OIDC-SSO.ko)
+- [Group Mapping](Group-Mapping.ko)
 - [Notion 연동](Notion-Integration.ko)
 - [Atlassian 연동](Atlassian-Integration.ko)
 - [Linear 연동](Linear-Integration.ko)
-- [Slack 감사 연동](Slack-Audit.ko)
+- [GitHub 권한 동기화](github-permission-sync)
+- [Slack 변경 이력 알림 연동](Slack-Audit.ko)
+- [Outbound 로케일/프롬프트 정책](Outbound-Locales.ko)
 - [릴리즈 노트](Release-Notes.ko)
 - [Installation (English)](Installation)
 
@@ -37,7 +42,15 @@ Claustrum은 MCP 클라이언트를 위한 팀 확장형 Memory Core 시스템�
 - `GET/POST /v1/projects`
 - `GET/POST /v1/memories`
 - `GET/PUT /v1/workspace-settings`
+- `GET /v1/auth/oidc/:workspace_key/start`
+- `GET /v1/auth/oidc/:workspace_key/callback`
+- `GET/PUT /v1/workspaces/:key/sso-settings`
+- `GET/POST/PATCH /v1/oidc/providers`
+- `GET/POST/PATCH/DELETE /v1/oidc/group-mappings`
 - `GET/PUT /v1/integrations`
+- `GET/POST/DELETE /v1/workspaces/:key/github/user-links`
+- `POST /v1/workspaces/:key/github/sync-permissions`
+- `GET /v1/workspaces/:key/github/permission-status`
 - `GET/POST/PATCH /v1/project-mappings`
 - `GET/POST /v1/users`
 - `GET/POST /v1/project-members`
@@ -53,6 +66,9 @@ Claustrum은 MCP 클라이언트를 위한 팀 확장형 Memory Core 시스템�
 - `GET /v1/raw-events`
 - `POST /v1/git-events`
 - `POST /v1/ci-events`
+- `GET/PUT /v1/workspaces/:key/outbound-settings`
+- `GET/PUT /v1/outbound-policies/:integration_type`
+- `POST /v1/outbound/render`
 - `GET /v1/jira/search`
 - `GET /v1/jira/read`
 - `GET /v1/confluence/search`

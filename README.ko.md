@@ -1,19 +1,55 @@
 # Claustrum
 
+![Claustrum Banner](./.github/assets/banner.png)
+
+[English README](README.md) | [한국어 README](README.ko.md) | [日本語 README](README.ja.md) | [Español README](README.es.md) | [中文 README](README.zh.md)
+
 Claustrum은 AI 시스템을 위한 공유 메모리 계층입니다. 프로젝트, 도구, 팀 전반의 컨텍스트를 통합합니다.
 
-Claustrum은 MCP 기반 AI 개발 워크플로를 운영 환경에서 안정적으로 실행하기 위한 메모리 인프라를 제공합니다.
+
+## 이 프로젝트가 하는 일
+
+- 여러 컴퓨터/여러 작업자 간 메모리 컨텍스트를 공유합니다.
+- MCP 운영 안전성(`stdout` 오염 방지, 정책 기반 동작)을 보장합니다.
+- Admin UI에서 워크스페이스/프로젝트/유저/권한/감사 로그를 관리합니다.
+- Notion/Jira/Confluence/Linear/Slack 같은 외부 컨텍스트를 연동합니다.
+
+
+## 왜 필요한가
+
+AI 개발 컨텍스트는 쉽게 분산됩니다.
+
+- 컴퓨터마다 기억 상태가 다름
+- 팀원마다 보는 문맥이 다름
+- 커밋/채팅/문서에 결정 사항이 흩어짐
+
+Claustrum은 이 문제를 팀 단위의 공유 메모리 시스템으로 바꿉니다.
 
 
 ## 핵심 구성요소
 
-- **Memory Core**: REST API, 인증/정책, Postgres 저장소.
-- **MCP Adapter**: Memory Core를 HTTP로 호출하는 stdio MCP 서버 (`stdout` JSON-RPC only).
-- **Admin UI**: 워크스페이스/프로젝트/메모리/임포트/연동/감사 로그 관리 대시보드.
-- **Shared Package**: 공용 스키마, 타입, 유틸리티.
+- **Memory Core**: REST API + 정책 + Postgres 저장소
+- **MCP Adapter**: Memory Core를 호출하는 stdio MCP 브리지
+- **Admin UI**: 팀 운영 관리 대시보드
+- **Shared Package**: 공용 스키마/타입/유틸
 
 
-## 모노레포 구조
+## 문서 정책 (위키 중심)
+
+이 README는 개요만 유지합니다. 상세 설치/설정/운영 문서는 위키에 있습니다.
+
+- [GitHub Wiki](https://github.com/stephen-kim/claustrum/wiki)
+- [위키 홈 (KO)](docs/wiki/Home.ko.md)
+- [설치 가이드 (KO)](docs/wiki/Installation.ko.md)
+- [운영 가이드 (KO)](docs/wiki/Operations.ko.md)
+- [보안 및 MCP I/O (KO)](docs/wiki/Security-and-MCP-IO.ko.md)
+- [온보딩 가이드 (KO)](docs/wiki/Onboarding.ko.md)
+- [API 키 보안 가이드 (KO)](docs/wiki/API-Keys-and-Security.ko.md)
+- [Outbound 로케일/프롬프트 정책 (KO)](docs/wiki/Outbound-Locales.ko.md)
+- [아키텍처 문서](docs/architecture.md)
+
+
+## 저장소 구조
 
 ```text
 apps/
@@ -22,133 +58,7 @@ apps/
   admin-ui/
 packages/
   shared/
-infra/
-  docker-compose.yml
 ```
-
-인프라 매니페스트는 `infra/docker-compose.yml`에도 미러링되어 있습니다.
-실제 실행용 compose 파일은 루트(`docker-compose.yml`, `docker-compose.dev.yml`)를 기본으로 사용합니다.
-
-
-## 아키텍처
-
-상세 아키텍처/데이터 모델 다이어그램:
-
-- `docs/architecture.md`
-
-
-## 프로젝트 해석과 메모리 스코프
-
-기본 프로젝트 해석 우선순위:
-
-1. `github_remote`
-2. `repo_root_slug`
-3. `manual`
-
-모노레포 subproject key는 **경로 기반**입니다 (`package.json` name 기반 아님):
-
-- repo key: `github:owner/repo`
-- subproject key: `github:owner/repo#apps/memory-core`
-
-자동 전환 기본값:
-
-- `auto_switch_repo=true`
-- `auto_switch_subproject=false`
-- `enable_monorepo_resolution=false`
-- `monorepo_detection_level=2`
-
-Pin 모드 도구:
-
-- `set_project({ key })`
-- `unset_project_pin()`
-- `get_current_project()`
-
-
-## Git Event Capture
-
-Claustrum은 git 라이프사이클 이벤트를 raw 운영 시그널로 저장할 수 있습니다.
-
-- `post-commit` (기본 활성화)
-- `post-merge` (기본 활성화)
-- `post-checkout` (기본 비활성, 옵션)
-
-정책은 **Admin UI > Project Resolution Settings > Git Events**에서 설정합니다.
-
-- `enable_git_events`
-- `enable_commit_events`
-- `enable_merge_events`
-- `enable_checkout_events`
-- `checkout_debounce_seconds`
-- `checkout_daily_limit`
-
-안전 정책:
-
-- `pre-push`는 의도적으로 지원하지 않습니다.
-- 훅은 비동기 fire-and-forget(`&`) + 항상 `exit 0`입니다.
-- 훅 실패가 git 동작을 막지 않습니다.
-- 훅 스크립트는 `>/dev/null 2>&1`로 출력 노이즈를 차단합니다.
-
-API:
-
-- `POST /v1/raw-events`
-- `GET /v1/raw-events`
-- `POST /v1/git-events` (레거시 호환 alias, 내부적으로 raw events로 매핑)
-
-
-## Quickstart (localdb)
-
-```bash
-cp .env.example .env
-docker compose --profile localdb up -d
-pnpm db:migrate && pnpm db:seed
-```
-
-
-## Quickstart (external DB)
-
-1. env 템플릿 복사:
-
-```bash
-cp .env.example .env
-```
-
-2. `DATABASE_URL`에 외부 DB(RDS 등) 설정:
-
-```bash
-DATABASE_URL=postgres://<user>:<pass>@<rds-endpoint>:5432/<db>?sslmode=require
-```
-
-3. localdb profile 없이 실행:
-
-```bash
-docker compose up -d
-```
-
-
-## Docker 네트워킹 주의사항
-
-- localdb 프로파일에서 컨테이너 내부 `DATABASE_URL` host는 `postgres`(서비스명)여야 합니다.
-- `MEMORY_CORE_URL`은 컨테이너 내부 호출 주소(일반적으로 `http://memory-core:8080`)입니다.
-- `NEXT_PUBLIC_MEMORY_CORE_URL`은 브라우저 접근 가능한 주소여야 합니다 (`http://localhost:8080` 또는 도메인).
-
-
-## 개발 워크플로
-
-```bash
-pnpm install
-pnpm build:workspace
-pnpm test:workspace
-pnpm dev
-```
-
-
-## 문서
-
-- `docs/architecture.md`
-- `docs/wiki/Home.ko.md`
-- `docs/wiki/Installation.ko.md`
-- `docs/wiki/Operations.ko.md`
-- `docs/wiki/Security-and-MCP-IO.ko.md`
 
 
 ## Upstream

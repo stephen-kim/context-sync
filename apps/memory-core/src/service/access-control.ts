@@ -1,12 +1,19 @@
 import type { PrismaClient, WorkspaceRole } from '@prisma/client';
 import type { AuthContext } from '../auth.js';
-import { hasProjectAccess, requireWorkspaceMembership } from '../permissions.js';
+import {
+  normalizeLegacyProjectRole,
+  requireProjectMembership,
+  requireWorkspaceMembership,
+  workspaceRoleAtLeast,
+  projectRoleAtLeast,
+} from '../permissions.js';
 import { AuthorizationError } from './errors.js';
 
 export async function assertWorkspaceAccess(
   prisma: PrismaClient,
   auth: AuthContext,
-  workspaceId: string
+  workspaceId: string,
+  minRole: WorkspaceRole = 'MEMBER'
 ): Promise<{ role: WorkspaceRole }> {
   const membership = await requireWorkspaceMembership({
     prisma,
@@ -16,6 +23,9 @@ export async function assertWorkspaceAccess(
   if (!membership) {
     throw new AuthorizationError('Workspace access denied');
   }
+  if (!workspaceRoleAtLeast(membership.role, minRole)) {
+    throw new AuthorizationError(`Workspace role ${minRole} or higher required`);
+  }
   return membership;
 }
 
@@ -24,33 +34,28 @@ export async function assertWorkspaceAdmin(
   auth: AuthContext,
   workspaceId: string
 ): Promise<void> {
-  const membership = await requireWorkspaceMembership({
-    prisma,
-    auth,
-    workspaceId,
-  });
-  if (!membership) {
-    throw new AuthorizationError('Workspace access denied');
-  }
-  if (membership.role !== 'ADMIN' && membership.role !== 'OWNER') {
-    throw new AuthorizationError('Workspace admin role required');
-  }
+  await assertWorkspaceAccess(prisma, auth, workspaceId, 'ADMIN');
 }
 
 export async function assertProjectAccess(
   prisma: PrismaClient,
   auth: AuthContext,
   workspaceId: string,
-  projectId: string
+  projectId: string,
+  minRole: 'OWNER' | 'MAINTAINER' | 'WRITER' | 'READER' = 'READER'
 ): Promise<void> {
-  const allowed = await hasProjectAccess({
+  const membership = await requireProjectMembership({
     prisma,
     auth,
     workspaceId,
     projectId,
   });
-  if (!allowed) {
+  if (!membership) {
     throw new AuthorizationError('Project access denied');
+  }
+  const normalized = normalizeLegacyProjectRole(membership.role);
+  if (!projectRoleAtLeast(normalized, minRole)) {
+    throw new AuthorizationError(`Project role ${minRole} or higher required`);
   }
 }
 
@@ -68,26 +73,13 @@ export async function assertRawAccess(
     return;
   }
   if (projectId) {
-    const allowed = await hasProjectAccess({
-      prisma,
-      auth,
-      workspaceId,
-      projectId,
+    const settings = await prisma.workspaceSettings.findUnique({
+      where: { workspaceId },
+      select: { rawAccessMinRole: true },
     });
-    if (!allowed) {
-      throw new AuthorizationError('Raw access requires admin or project member');
-    }
+    const minRole = settings?.rawAccessMinRole || 'WRITER';
+    await assertProjectAccess(prisma, auth, workspaceId, projectId, minRole);
     return;
   }
-  const membership = await requireWorkspaceMembership({
-    prisma,
-    auth,
-    workspaceId,
-  });
-  if (!membership) {
-    throw new AuthorizationError('Workspace access denied');
-  }
-  if (membership.role !== 'ADMIN' && membership.role !== 'OWNER') {
-    throw new AuthorizationError('Workspace admin role required for workspace-wide raw search');
-  }
+  await assertWorkspaceAccess(prisma, auth, workspaceId, 'ADMIN');
 }

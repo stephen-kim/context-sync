@@ -1,7 +1,15 @@
 'use client';
 
-import type { MonorepoMode, ResolutionKind } from '../lib/types';
-import { kindDescription, monorepoModeDescription, reorderKinds } from '../lib/utils';
+import type { FormEvent } from 'react';
+import type {
+  MonorepoContextMode,
+  MonorepoMode,
+  MonorepoSubprojectPolicy,
+  Project,
+  ProjectRole,
+  ResolutionKind,
+} from '../lib/types';
+import { isSubprojectKey, kindDescription, monorepoModeDescription, reorderKinds } from '../lib/utils';
 import {
   Button,
   Card,
@@ -40,20 +48,24 @@ type Props = {
   setCheckoutDebounceSeconds: (value: number) => void;
   checkoutDailyLimit: number;
   setCheckoutDailyLimit: (value: number) => void;
-  enableAutoExtraction: boolean;
-  setEnableAutoExtraction: (value: boolean) => void;
-  autoExtractionMode: 'draft_only' | 'auto_confirm';
-  setAutoExtractionMode: (value: 'draft_only' | 'auto_confirm') => void;
-  autoConfirmMinConfidence: number;
-  setAutoConfirmMinConfidence: (value: number) => void;
-  autoConfirmAllowedEventTypesText: string;
-  setAutoConfirmAllowedEventTypesText: (value: string) => void;
-  autoConfirmKeywordAllowlistText: string;
-  setAutoConfirmKeywordAllowlistText: (value: string) => void;
-  autoConfirmKeywordDenylistText: string;
-  setAutoConfirmKeywordDenylistText: (value: string) => void;
-  autoExtractionBatchSize: number;
-  setAutoExtractionBatchSize: (value: number) => void;
+  enableActivityAutoLog: boolean;
+  setEnableActivityAutoLog: (value: boolean) => void;
+  enableDecisionExtraction: boolean;
+  setEnableDecisionExtraction: (value: boolean) => void;
+  decisionExtractionMode: 'llm_only' | 'hybrid_priority';
+  setDecisionExtractionMode: (value: 'llm_only' | 'hybrid_priority') => void;
+  decisionDefaultStatus: 'draft' | 'confirmed';
+  setDecisionDefaultStatus: (value: 'draft' | 'confirmed') => void;
+  decisionAutoConfirmEnabled: boolean;
+  setDecisionAutoConfirmEnabled: (value: boolean) => void;
+  decisionAutoConfirmMinConfidence: number;
+  setDecisionAutoConfirmMinConfidence: (value: number) => void;
+  decisionBatchSize: number;
+  setDecisionBatchSize: (value: number) => void;
+  decisionBackfillDays: number;
+  setDecisionBackfillDays: (value: number) => void;
+  rawAccessMinRole: ProjectRole;
+  setRawAccessMinRole: (value: ProjectRole) => void;
   searchDefaultMode: 'hybrid' | 'keyword' | 'semantic';
   setSearchDefaultMode: (value: 'hybrid' | 'keyword' | 'semantic') => void;
   searchHybridAlpha: number;
@@ -62,6 +74,20 @@ type Props = {
   setSearchHybridBeta: (value: number) => void;
   searchDefaultLimit: number;
   setSearchDefaultLimit: (value: number) => void;
+  searchTypeWeightsJson: string;
+  setSearchTypeWeightsJson: (value: string) => void;
+  searchRecencyHalfLifeDays: number;
+  setSearchRecencyHalfLifeDays: (value: number) => void;
+  searchSubpathBoostWeight: number;
+  setSearchSubpathBoostWeight: (value: number) => void;
+  retentionPolicyEnabled: boolean;
+  setRetentionPolicyEnabled: (value: boolean) => void;
+  auditRetentionDays: number;
+  setAuditRetentionDays: (value: number) => void;
+  rawRetentionDays: number;
+  setRawRetentionDays: (value: number) => void;
+  retentionMode: 'archive' | 'hard_delete';
+  setRetentionMode: (value: 'archive' | 'hard_delete') => void;
   githubPrefix: string;
   setGithubPrefix: (value: string) => void;
   localPrefix: string;
@@ -72,6 +98,27 @@ type Props = {
   setMonorepoDetectionLevel: (value: number) => void;
   monorepoMode: MonorepoMode;
   setMonorepoMode: (value: MonorepoMode) => void;
+  monorepoContextMode: MonorepoContextMode;
+  setMonorepoContextMode: (value: MonorepoContextMode) => void;
+  monorepoSubpathMetadataEnabled: boolean;
+  setMonorepoSubpathMetadataEnabled: (value: boolean) => void;
+  monorepoSubpathBoostEnabled: boolean;
+  setMonorepoSubpathBoostEnabled: (value: boolean) => void;
+  monorepoSubpathBoostWeight: number;
+  setMonorepoSubpathBoostWeight: (value: number) => void;
+  projects: Project[];
+  monorepoSubprojectPolicies: MonorepoSubprojectPolicy[];
+  newMonorepoPolicyRepoKey: string;
+  setNewMonorepoPolicyRepoKey: (value: string) => void;
+  newMonorepoPolicySubpath: string;
+  setNewMonorepoPolicySubpath: (value: string) => void;
+  newMonorepoPolicyEnabled: boolean;
+  setNewMonorepoPolicyEnabled: (value: boolean) => void;
+  monorepoPolicyReason: string;
+  setMonorepoPolicyReason: (value: string) => void;
+  createMonorepoSubprojectPolicy: (event?: FormEvent<Element>) => Promise<void>;
+  patchMonorepoSubprojectPolicy: (id: string, enabled: boolean) => Promise<void>;
+  removeMonorepoSubprojectPolicy: (id: string) => Promise<void>;
   monorepoWorkspaceGlobsText: string;
   setMonorepoWorkspaceGlobsText: (value: string) => void;
   monorepoExcludeGlobsText: string;
@@ -175,25 +222,38 @@ export function ResolutionSettingsPanel(props: Props) {
               props.setEnableCheckoutEvents(false);
               props.setCheckoutDebounceSeconds(30);
               props.setCheckoutDailyLimit(200);
-              props.setEnableAutoExtraction(true);
-              props.setAutoExtractionMode('draft_only');
-              props.setAutoConfirmMinConfidence(0.85);
-              props.setAutoConfirmAllowedEventTypesText('post_commit\npost_merge');
-              props.setAutoConfirmKeywordAllowlistText(
-                'migrate\nswitch\nremove\ndeprecate\nrename\nrefactor'
-              );
-              props.setAutoConfirmKeywordDenylistText('wip\ntmp\ndebug\ntest\ntry');
-              props.setAutoExtractionBatchSize(20);
+              props.setEnableActivityAutoLog(true);
+              props.setEnableDecisionExtraction(true);
+              props.setDecisionExtractionMode('llm_only');
+              props.setDecisionDefaultStatus('draft');
+              props.setDecisionAutoConfirmEnabled(false);
+              props.setDecisionAutoConfirmMinConfidence(0.9);
+              props.setDecisionBatchSize(25);
+              props.setDecisionBackfillDays(30);
+              props.setRawAccessMinRole('WRITER');
               props.setSearchDefaultMode('hybrid');
               props.setSearchHybridAlpha(0.6);
               props.setSearchHybridBeta(0.4);
               props.setSearchDefaultLimit(20);
+              props.setSearchTypeWeightsJson(
+                '{\n  "decision": 1.5,\n  "constraint": 1.35,\n  "goal": 1.2,\n  "activity": 1.05,\n  "active_work": 1.1,\n  "summary": 1.2,\n  "note": 1.0,\n  "problem": 1.0,\n  "caveat": 0.95\n}'
+              );
+              props.setSearchRecencyHalfLifeDays(14);
+              props.setSearchSubpathBoostWeight(1.5);
+              props.setRetentionPolicyEnabled(false);
+              props.setAuditRetentionDays(365);
+              props.setRawRetentionDays(90);
+              props.setRetentionMode('archive');
               props.setGithubPrefix('github:');
               props.setLocalPrefix('local:');
               props.setAutoCreateProjectSubprojects(true);
               props.setEnableMonorepoResolution(false);
               props.setMonorepoDetectionLevel(2);
               props.setMonorepoMode('repo_hash_subpath');
+              props.setMonorepoContextMode('shared_repo');
+              props.setMonorepoSubpathMetadataEnabled(true);
+              props.setMonorepoSubpathBoostEnabled(true);
+              props.setMonorepoSubpathBoostWeight(1.5);
               props.setMonorepoWorkspaceGlobsText('apps/*\npackages/*');
               props.setMonorepoExcludeGlobsText(
                 '**/node_modules/**\n**/.git/**\n**/dist/**\n**/build/**\n.next/**'
@@ -304,32 +364,104 @@ export function ResolutionSettingsPanel(props: Props) {
         </div>
 
         <div className="stack gap-2">
-          <Label className="muted">Decision Auto Extraction</Label>
+          <Label className="muted">Extraction Pipeline</Label>
           <div className="row">
             <div className="flex items-center gap-2">
               <Checkbox
-                id="enable-auto-extraction"
-                checked={props.enableAutoExtraction}
-                onCheckedChange={(value) => props.setEnableAutoExtraction(value === true)}
+                id="enable-activity-auto-log"
+                checked={props.enableActivityAutoLog}
+                onCheckedChange={(value) => props.setEnableActivityAutoLog(value === true)}
               />
-              <Label htmlFor="enable-auto-extraction" className="text-sm text-muted-foreground">
-                enable raw → decision auto extraction
+              <Label htmlFor="enable-activity-auto-log" className="text-sm text-muted-foreground">
+                create activity memory for every commit/merge
               </Label>
             </div>
-            <div className="stack gap-1">
-              <Label className="muted">Mode</Label>
-              <Select
-                value={props.autoExtractionMode}
-                onChange={(event) =>
-                  props.setAutoExtractionMode(event.target.value as 'draft_only' | 'auto_confirm')
-                }
-              >
-                <option value="draft_only">draft_only</option>
-                <option value="auto_confirm">auto_confirm</option>
-              </Select>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="enable-decision-extraction"
+                checked={props.enableDecisionExtraction}
+                onCheckedChange={(value) => props.setEnableDecisionExtraction(value === true)}
+              />
+              <Label htmlFor="enable-decision-extraction" className="text-sm text-muted-foreground">
+                run LLM decision extraction jobs
+              </Label>
             </div>
           </div>
           <div className="row">
+            <div className="stack gap-1">
+              <Label className="muted">Decision Extraction Mode</Label>
+              <Select
+                value={props.decisionExtractionMode}
+                onChange={(event) =>
+                  props.setDecisionExtractionMode(event.target.value as 'llm_only' | 'hybrid_priority')
+                }
+              >
+                <option value="llm_only">llm_only</option>
+                <option value="hybrid_priority">hybrid_priority</option>
+              </Select>
+            </div>
+            <div className="stack gap-1">
+              <Label className="muted">Default Decision Status</Label>
+              <Select
+                value={props.decisionDefaultStatus}
+                onChange={(event) =>
+                  props.setDecisionDefaultStatus(event.target.value as 'draft' | 'confirmed')
+                }
+              >
+                <option value="draft">draft</option>
+                <option value="confirmed">confirmed</option>
+              </Select>
+            </div>
+            <div className="stack gap-1">
+              <Label className="muted">Decision Batch Size</Label>
+              <Input
+                type="number"
+                min={1}
+                max={2000}
+                value={props.decisionBatchSize}
+                onChange={(event) => props.setDecisionBatchSize(Math.max(Number(event.target.value) || 1, 1))}
+              />
+            </div>
+            <div className="stack gap-1">
+              <Label className="muted">Decision Backfill Days</Label>
+              <Input
+                type="number"
+                min={1}
+                max={3650}
+                value={props.decisionBackfillDays}
+                onChange={(event) =>
+                  props.setDecisionBackfillDays(Math.max(Number(event.target.value) || 1, 1))
+                }
+              />
+            </div>
+            <div className="stack gap-1">
+              <Label className="muted">Raw Access Minimum Role</Label>
+              <Select
+                value={props.rawAccessMinRole}
+                onChange={(event) => props.setRawAccessMinRole(event.target.value as ProjectRole)}
+              >
+                <option value="OWNER">OWNER</option>
+                <option value="MAINTAINER">MAINTAINER</option>
+                <option value="WRITER">WRITER</option>
+                <option value="READER">READER</option>
+              </Select>
+              <div className="muted">default: WRITER</div>
+            </div>
+          </div>
+          <div className="row">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="decision-auto-confirm-enabled"
+                checked={props.decisionAutoConfirmEnabled}
+                onCheckedChange={(value) => props.setDecisionAutoConfirmEnabled(value === true)}
+              />
+              <Label
+                htmlFor="decision-auto-confirm-enabled"
+                className="text-sm text-muted-foreground"
+              >
+                auto-confirm when confidence threshold is met
+              </Label>
+            </div>
             <div className="stack gap-1">
               <Label className="muted">Auto Confirm Min Confidence</Label>
               <Input
@@ -337,55 +469,17 @@ export function ResolutionSettingsPanel(props: Props) {
                 min={0}
                 max={1}
                 step={0.01}
-                value={props.autoConfirmMinConfidence}
+                value={props.decisionAutoConfirmMinConfidence}
                 onChange={(event) =>
-                  props.setAutoConfirmMinConfidence(
+                  props.setDecisionAutoConfirmMinConfidence(
                     Math.min(Math.max(Number(event.target.value) || 0, 0), 1)
                   )
                 }
               />
             </div>
-            <div className="stack gap-1">
-              <Label className="muted">Auto Extraction Batch Size</Label>
-              <Input
-                type="number"
-                min={1}
-                max={2000}
-                value={props.autoExtractionBatchSize}
-                onChange={(event) =>
-                  props.setAutoExtractionBatchSize(Math.max(Number(event.target.value) || 1, 1))
-                }
-              />
-            </div>
           </div>
-          <div className="row">
-            <div className="stack gap-1">
-              <Label className="muted">Allowed Event Types (line-separated)</Label>
-              <Textarea
-                rows={3}
-                value={props.autoConfirmAllowedEventTypesText}
-                onChange={(event) => props.setAutoConfirmAllowedEventTypesText(event.target.value)}
-                placeholder={'post_commit\npost_merge'}
-              />
-            </div>
-            <div className="stack gap-1">
-              <Label className="muted">Keyword Allowlist (line-separated)</Label>
-              <Textarea
-                rows={3}
-                value={props.autoConfirmKeywordAllowlistText}
-                onChange={(event) => props.setAutoConfirmKeywordAllowlistText(event.target.value)}
-                placeholder={'migrate\nswitch\nrefactor'}
-              />
-            </div>
-            <div className="stack gap-1">
-              <Label className="muted">Keyword Denylist (line-separated)</Label>
-              <Textarea
-                rows={3}
-                value={props.autoConfirmKeywordDenylistText}
-                onChange={(event) => props.setAutoConfirmKeywordDenylistText(event.target.value)}
-                placeholder={'wip\ntmp\ndebug'}
-              />
-            </div>
+          <div className="muted">
+            Keywords do NOT decide decisions. They only prioritize LLM processing.
           </div>
         </div>
 
@@ -444,6 +538,102 @@ export function ResolutionSettingsPanel(props: Props) {
               />
             </div>
           </div>
+          <div className="row">
+            <div className="stack gap-1">
+              <Label className="muted">Recency Half-life (days)</Label>
+              <Input
+                type="number"
+                min={1}
+                max={3650}
+                step={1}
+                value={props.searchRecencyHalfLifeDays}
+                onChange={(event) =>
+                  props.setSearchRecencyHalfLifeDays(
+                    Math.min(Math.max(Number(event.target.value) || 1, 1), 3650)
+                  )
+                }
+              />
+            </div>
+            <div className="stack gap-1">
+              <Label className="muted">Search Subpath Boost Weight</Label>
+              <Input
+                type="number"
+                min={1}
+                max={10}
+                step={0.1}
+                value={props.searchSubpathBoostWeight}
+                onChange={(event) =>
+                  props.setSearchSubpathBoostWeight(
+                    Math.min(Math.max(Number(event.target.value) || 1.5, 1), 10)
+                  )
+                }
+              />
+            </div>
+          </div>
+          <div className="stack gap-1">
+            <Label className="muted">Type Weights (JSON)</Label>
+            <Textarea
+              value={props.searchTypeWeightsJson}
+              onChange={(event) => props.setSearchTypeWeightsJson(event.target.value)}
+              rows={7}
+              placeholder='{"decision":1.5,"constraint":1.35,"goal":1.2}'
+            />
+            <div className="muted">Used for hybrid ranking (decision &gt; constraint &gt; goal by default).</div>
+          </div>
+        </div>
+
+        <div className="stack gap-2">
+          <Label className="muted">Audit Retention Policy</Label>
+          <div className="row">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="retention-policy-enabled"
+                checked={props.retentionPolicyEnabled}
+                onCheckedChange={(value) => props.setRetentionPolicyEnabled(value === true)}
+              />
+              <Label htmlFor="retention-policy-enabled" className="text-sm text-muted-foreground">
+                enable retention policy (daily background job)
+              </Label>
+            </div>
+          </div>
+          <div className="row">
+            <div className="stack gap-1">
+              <Label className="muted">Audit Retention Days</Label>
+              <Input
+                type="number"
+                min={1}
+                max={3650}
+                value={props.auditRetentionDays}
+                onChange={(event) =>
+                  props.setAuditRetentionDays(Math.max(Number(event.target.value) || 1, 1))
+                }
+              />
+            </div>
+            <div className="stack gap-1">
+              <Label className="muted">Raw Retention Days</Label>
+              <Input
+                type="number"
+                min={1}
+                max={3650}
+                value={props.rawRetentionDays}
+                onChange={(event) =>
+                  props.setRawRetentionDays(Math.max(Number(event.target.value) || 1, 1))
+                }
+              />
+            </div>
+            <div className="stack gap-1">
+              <Label className="muted">Retention Mode</Label>
+              <Select
+                value={props.retentionMode}
+                onChange={(event) =>
+                  props.setRetentionMode(event.target.value as 'archive' | 'hard_delete')
+                }
+              >
+                <option value="archive">archive (default, recommended)</option>
+                <option value="hard_delete">hard_delete</option>
+              </Select>
+            </div>
+          </div>
         </div>
 
         <div className="row">
@@ -478,6 +668,184 @@ export function ResolutionSettingsPanel(props: Props) {
             </Label>
           </div>
         </div>
+
+        <div className="stack gap-2 rounded-md border border-border bg-muted/20 p-3">
+          <Label className="muted">Monorepo Context</Label>
+          <div className="stack gap-1">
+            <Label className="muted">Mode</Label>
+            <Select
+              value={props.monorepoContextMode}
+              onChange={(event) =>
+                props.setMonorepoContextMode(event.target.value as MonorepoContextMode)
+              }
+            >
+              <option value="shared_repo">Shared (Repo-level)</option>
+              <option value="split_on_demand">Split (On-demand)</option>
+              <option value="split_auto">Split (Auto - advanced)</option>
+            </Select>
+            <div className="muted">
+              {props.monorepoContextMode === 'shared_repo'
+                ? 'Shared: Memories are shared across the repo. Results are boosted for your current subpath.'
+                : props.monorepoContextMode === 'split_on_demand'
+                  ? 'In Split (On-demand) mode, only listed subpaths are isolated as separate projects.'
+                  : 'Split (Auto): subprojects can be isolated automatically with guardrails.'}
+            </div>
+          </div>
+          <div className="row">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="monorepo-subpath-metadata-enabled"
+                checked={props.monorepoSubpathMetadataEnabled}
+                onCheckedChange={(value) => props.setMonorepoSubpathMetadataEnabled(value === true)}
+              />
+              <Label
+                htmlFor="monorepo-subpath-metadata-enabled"
+                className="text-sm text-muted-foreground"
+              >
+                save subpath metadata
+              </Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="monorepo-subpath-boost-enabled"
+                checked={props.monorepoSubpathBoostEnabled}
+                onCheckedChange={(value) => props.setMonorepoSubpathBoostEnabled(value === true)}
+              />
+              <Label
+                htmlFor="monorepo-subpath-boost-enabled"
+                className="text-sm text-muted-foreground"
+              >
+                boost results by current subpath
+              </Label>
+            </div>
+          </div>
+          <div className="stack gap-1">
+            <Label className="muted">Subpath Boost Weight</Label>
+            <Input
+              type="number"
+              min={1}
+              max={10}
+              step={0.1}
+              value={props.monorepoSubpathBoostWeight}
+              onChange={(event) =>
+                props.setMonorepoSubpathBoostWeight(
+                  Math.min(Math.max(Number(event.target.value) || 1.5, 1), 10)
+                )
+              }
+            />
+          </div>
+        </div>
+
+        {props.monorepoContextMode === 'split_on_demand' ? (
+          <div className="stack gap-2 rounded-md border border-border bg-muted/20 p-3">
+            <Label className="muted">On-demand Subproject Split List</Label>
+            <div className="row">
+              <div className="stack gap-1">
+                <Label className="muted">Repo Key</Label>
+                <Select
+                  value={props.newMonorepoPolicyRepoKey}
+                  onChange={(event) => props.setNewMonorepoPolicyRepoKey(event.target.value)}
+                >
+                  <option value="">Select repo project</option>
+                  {props.projects
+                    .filter((project) => !isSubprojectKey(project.key))
+                    .map((project) => (
+                      <option key={project.id} value={project.key}>
+                        {project.key}
+                      </option>
+                    ))}
+                </Select>
+              </div>
+              <div className="stack gap-1">
+                <Label className="muted">Subpath</Label>
+                <Input
+                  value={props.newMonorepoPolicySubpath}
+                  onChange={(event) => props.setNewMonorepoPolicySubpath(event.target.value)}
+                  placeholder="apps/admin-ui"
+                />
+              </div>
+              <div className="flex items-end gap-2">
+                <Checkbox
+                  id="new-monorepo-policy-enabled"
+                  checked={props.newMonorepoPolicyEnabled}
+                  onCheckedChange={(value) => props.setNewMonorepoPolicyEnabled(value === true)}
+                />
+                <Label htmlFor="new-monorepo-policy-enabled" className="text-sm text-muted-foreground">
+                  enabled
+                </Label>
+              </div>
+              <div className="flex items-end">
+                <Button
+                  type="button"
+                  onClick={() => {
+                    void props.createMonorepoSubprojectPolicy();
+                  }}
+                >
+                  Add
+                </Button>
+              </div>
+            </div>
+            <div className="stack gap-1">
+              <Label className="muted">Reason (for audit log)</Label>
+              <Input
+                value={props.monorepoPolicyReason}
+                onChange={(event) => props.setMonorepoPolicyReason(event.target.value)}
+                placeholder="why this subproject split policy changed"
+              />
+            </div>
+            <div style={{ overflowX: 'auto' }}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Repo Key</th>
+                    <th>Subpath</th>
+                    <th>Enabled</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {props.monorepoSubprojectPolicies.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="muted">
+                        no subproject split policies
+                      </td>
+                    </tr>
+                  ) : (
+                    props.monorepoSubprojectPolicies.map((policy) => (
+                      <tr key={policy.id}>
+                        <td>{policy.repo_key}</td>
+                        <td>{policy.subpath}</td>
+                        <td>{policy.enabled ? 'yes' : 'no'}</td>
+                        <td>
+                          <div className="toolbar">
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              onClick={() => {
+                                void props.patchMonorepoSubprojectPolicy(policy.id, !policy.enabled);
+                              }}
+                            >
+                              {policy.enabled ? 'Disable' : 'Enable'}
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              onClick={() => {
+                                void props.removeMonorepoSubprojectPolicy(policy.id);
+                              }}
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : null}
 
         <div className="stack gap-1">
           <Label className="muted">Monorepo Detection Level</Label>

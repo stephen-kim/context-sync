@@ -1,0 +1,603 @@
+'use client';
+
+import { ApiKeysPanel } from '../api-keys-panel';
+import { DecisionKeywordPoliciesPanel } from '../decision-keyword-policies-panel';
+import { DecisionsPanel } from '../decisions-panel';
+import { IntegrationsPanel } from '../integrations-panel';
+import { OutboundMessagingPanel } from '../outbound-messaging-panel';
+import { OidcSsoPanel } from '../oidc-sso-panel';
+import { ProjectMappingsPanel } from '../project-mappings-panel';
+import { ProjectMembersPanel } from '../project-members-panel';
+import { ProjectsPanel } from '../projects-panel';
+import { ResolutionSettingsPanel } from '../resolution-settings-panel';
+import { WorkspaceMembersPanel } from '../workspace-members-panel';
+import type { Project } from '../../lib/types';
+import type { AdminAuthInviteApiKeyActions } from '../admin-console-domains/use-admin-auth-invite-api-key-actions';
+import type { AdminAuthInviteApiKeyState } from '../admin-console-domains/use-admin-auth-invite-api-key-state';
+import type { AdminIntegrationsOutboundActions } from '../admin-console-domains/use-admin-integrations-outbound-actions';
+import type { AdminIntegrationsOutboundState } from '../admin-console-domains/use-admin-integrations-outbound-state';
+import type { AdminMemorySearchActions } from '../admin-console-domains/use-admin-memory-search-actions';
+import type { AdminMemorySearchState } from '../admin-console-domains/use-admin-memory-search-state';
+import type { AdminWorkspaceProjectActions } from '../admin-console-domains/use-admin-workspace-project-actions';
+import type { AdminWorkspaceProjectState } from '../admin-console-domains/use-admin-workspace-project-state';
+
+type Props = {
+  selectedWorkspace: string;
+  filteredProjects: Project[];
+  authState: AdminAuthInviteApiKeyState;
+  authActions: AdminAuthInviteApiKeyActions;
+  workspaceState: AdminWorkspaceProjectState;
+  workspaceActions: AdminWorkspaceProjectActions;
+  memoryState: AdminMemorySearchState;
+  memoryActions: AdminMemorySearchActions;
+  integrationsState: AdminIntegrationsOutboundState;
+  integrationsActions: AdminIntegrationsOutboundActions;
+};
+
+export function AdminManagementPanels(props: Props) {
+  const notionLocked = props.integrationsState.integrationStates.notion.locked === true;
+  const jiraLocked = props.integrationsState.integrationStates.jira.locked === true;
+  const confluenceLocked = props.integrationsState.integrationStates.confluence.locked === true;
+  const linearLocked = props.integrationsState.integrationStates.linear.locked === true;
+  const slackLocked = props.integrationsState.integrationStates.slack.locked === true;
+  const auditReasonerLocked = props.integrationsState.integrationStates.audit_reasoner.locked === true;
+
+  return (
+    <>
+      <ResolutionSettingsPanel
+        resolutionOrder={props.workspaceState.resolutionOrder}
+        setResolutionOrder={props.workspaceState.setResolutionOrder}
+        autoCreateProject={props.workspaceState.autoCreateProject}
+        setAutoCreateProject={props.workspaceState.setAutoCreateProject}
+        autoCreateProjectSubprojects={props.workspaceState.autoCreateProjectSubprojects}
+        setAutoCreateProjectSubprojects={props.workspaceState.setAutoCreateProjectSubprojects}
+        autoSwitchRepo={props.workspaceState.autoSwitchRepo}
+        setAutoSwitchRepo={props.workspaceState.setAutoSwitchRepo}
+        autoSwitchSubproject={props.workspaceState.autoSwitchSubproject}
+        setAutoSwitchSubproject={props.workspaceState.setAutoSwitchSubproject}
+        allowManualPin={props.workspaceState.allowManualPin}
+        setAllowManualPin={props.workspaceState.setAllowManualPin}
+        enableGitEvents={props.workspaceState.enableGitEvents}
+        setEnableGitEvents={props.workspaceState.setEnableGitEvents}
+        enableCommitEvents={props.workspaceState.enableCommitEvents}
+        setEnableCommitEvents={props.workspaceState.setEnableCommitEvents}
+        enableMergeEvents={props.workspaceState.enableMergeEvents}
+        setEnableMergeEvents={props.workspaceState.setEnableMergeEvents}
+        enableCheckoutEvents={props.workspaceState.enableCheckoutEvents}
+        setEnableCheckoutEvents={props.workspaceState.setEnableCheckoutEvents}
+        checkoutDebounceSeconds={props.workspaceState.checkoutDebounceSeconds}
+        setCheckoutDebounceSeconds={props.workspaceState.setCheckoutDebounceSeconds}
+        checkoutDailyLimit={props.workspaceState.checkoutDailyLimit}
+        setCheckoutDailyLimit={props.workspaceState.setCheckoutDailyLimit}
+        enableActivityAutoLog={props.memoryState.enableActivityAutoLog}
+        setEnableActivityAutoLog={props.memoryState.setEnableActivityAutoLog}
+        enableDecisionExtraction={props.memoryState.enableDecisionExtraction}
+        setEnableDecisionExtraction={props.memoryState.setEnableDecisionExtraction}
+        decisionExtractionMode={props.memoryState.decisionExtractionMode}
+        setDecisionExtractionMode={props.memoryState.setDecisionExtractionMode}
+        decisionDefaultStatus={props.memoryState.decisionDefaultStatus}
+        setDecisionDefaultStatus={props.memoryState.setDecisionDefaultStatus}
+        decisionAutoConfirmEnabled={props.memoryState.decisionAutoConfirmEnabled}
+        setDecisionAutoConfirmEnabled={props.memoryState.setDecisionAutoConfirmEnabled}
+        decisionAutoConfirmMinConfidence={props.memoryState.decisionAutoConfirmMinConfidence}
+        setDecisionAutoConfirmMinConfidence={props.memoryState.setDecisionAutoConfirmMinConfidence}
+        decisionBatchSize={props.memoryState.decisionBatchSize}
+        setDecisionBatchSize={props.memoryState.setDecisionBatchSize}
+        decisionBackfillDays={props.memoryState.decisionBackfillDays}
+        setDecisionBackfillDays={props.memoryState.setDecisionBackfillDays}
+        rawAccessMinRole={props.memoryState.rawAccessMinRole}
+        setRawAccessMinRole={props.memoryState.setRawAccessMinRole}
+        searchDefaultMode={props.workspaceState.searchDefaultMode}
+        setSearchDefaultMode={props.workspaceState.setSearchDefaultMode}
+        searchHybridAlpha={props.workspaceState.searchHybridAlpha}
+        setSearchHybridAlpha={props.workspaceState.setSearchHybridAlpha}
+        searchHybridBeta={props.workspaceState.searchHybridBeta}
+        setSearchHybridBeta={props.workspaceState.setSearchHybridBeta}
+        searchDefaultLimit={props.workspaceState.searchDefaultLimit}
+        setSearchDefaultLimit={props.workspaceState.setSearchDefaultLimit}
+        searchTypeWeightsJson={props.workspaceState.searchTypeWeightsJson}
+        setSearchTypeWeightsJson={props.workspaceState.setSearchTypeWeightsJson}
+        searchRecencyHalfLifeDays={props.workspaceState.searchRecencyHalfLifeDays}
+        setSearchRecencyHalfLifeDays={props.workspaceState.setSearchRecencyHalfLifeDays}
+        searchSubpathBoostWeight={props.workspaceState.searchSubpathBoostWeight}
+        setSearchSubpathBoostWeight={props.workspaceState.setSearchSubpathBoostWeight}
+        retentionPolicyEnabled={props.workspaceState.retentionPolicyEnabled}
+        setRetentionPolicyEnabled={props.workspaceState.setRetentionPolicyEnabled}
+        auditRetentionDays={props.workspaceState.auditRetentionDays}
+        setAuditRetentionDays={props.workspaceState.setAuditRetentionDays}
+        rawRetentionDays={props.workspaceState.rawRetentionDays}
+        setRawRetentionDays={props.workspaceState.setRawRetentionDays}
+        retentionMode={props.workspaceState.retentionMode}
+        setRetentionMode={props.workspaceState.setRetentionMode}
+        githubPrefix={props.workspaceState.githubProjectKeyPrefix}
+        setGithubPrefix={(value) => {
+          props.workspaceState.setGithubPrefix(value);
+          props.workspaceState.setGithubProjectKeyPrefix(value);
+        }}
+        localPrefix={props.workspaceState.localPrefix}
+        setLocalPrefix={props.workspaceState.setLocalPrefix}
+        enableMonorepoResolution={props.workspaceState.enableMonorepoResolution}
+        setEnableMonorepoResolution={props.workspaceState.setEnableMonorepoResolution}
+        monorepoDetectionLevel={props.workspaceState.monorepoDetectionLevel}
+        setMonorepoDetectionLevel={props.workspaceState.setMonorepoDetectionLevel}
+        monorepoMode={props.workspaceState.monorepoMode}
+        setMonorepoMode={props.workspaceState.setMonorepoMode}
+        monorepoContextMode={props.workspaceState.monorepoContextMode}
+        setMonorepoContextMode={props.workspaceState.setMonorepoContextMode}
+        monorepoSubpathMetadataEnabled={props.workspaceState.monorepoSubpathMetadataEnabled}
+        setMonorepoSubpathMetadataEnabled={props.workspaceState.setMonorepoSubpathMetadataEnabled}
+        monorepoSubpathBoostEnabled={props.workspaceState.monorepoSubpathBoostEnabled}
+        setMonorepoSubpathBoostEnabled={props.workspaceState.setMonorepoSubpathBoostEnabled}
+        monorepoSubpathBoostWeight={props.workspaceState.monorepoSubpathBoostWeight}
+        setMonorepoSubpathBoostWeight={props.workspaceState.setMonorepoSubpathBoostWeight}
+        projects={props.workspaceState.projects}
+        monorepoSubprojectPolicies={props.workspaceState.monorepoSubprojectPolicies}
+        newMonorepoPolicyRepoKey={props.workspaceState.newMonorepoPolicyRepoKey}
+        setNewMonorepoPolicyRepoKey={props.workspaceState.setNewMonorepoPolicyRepoKey}
+        newMonorepoPolicySubpath={props.workspaceState.newMonorepoPolicySubpath}
+        setNewMonorepoPolicySubpath={props.workspaceState.setNewMonorepoPolicySubpath}
+        newMonorepoPolicyEnabled={props.workspaceState.newMonorepoPolicyEnabled}
+        setNewMonorepoPolicyEnabled={props.workspaceState.setNewMonorepoPolicyEnabled}
+        monorepoPolicyReason={props.workspaceState.monorepoPolicyReason}
+        setMonorepoPolicyReason={props.workspaceState.setMonorepoPolicyReason}
+        createMonorepoSubprojectPolicy={props.workspaceActions.createMonorepoSubprojectPolicy}
+        patchMonorepoSubprojectPolicy={props.workspaceActions.patchMonorepoSubprojectPolicy}
+        removeMonorepoSubprojectPolicy={props.workspaceActions.removeMonorepoSubprojectPolicy}
+        monorepoWorkspaceGlobsText={props.workspaceState.monorepoWorkspaceGlobsText}
+        setMonorepoWorkspaceGlobsText={props.workspaceState.setMonorepoWorkspaceGlobsText}
+        monorepoExcludeGlobsText={props.workspaceState.monorepoExcludeGlobsText}
+        setMonorepoExcludeGlobsText={props.workspaceState.setMonorepoExcludeGlobsText}
+        monorepoRootMarkersText={props.workspaceState.monorepoRootMarkersText}
+        setMonorepoRootMarkersText={props.workspaceState.setMonorepoRootMarkersText}
+        monorepoMaxDepth={props.workspaceState.monorepoMaxDepth}
+        setMonorepoMaxDepth={props.workspaceState.setMonorepoMaxDepth}
+        workspaceSettingsReason={props.workspaceState.workspaceSettingsReason}
+        setWorkspaceSettingsReason={props.workspaceState.setWorkspaceSettingsReason}
+        saveWorkspaceSettings={props.workspaceActions.saveWorkspaceSettings}
+        draggingKind={props.workspaceState.draggingKind}
+        setDraggingKind={props.workspaceState.setDraggingKind}
+      />
+
+      <DecisionKeywordPoliciesPanel
+        policies={props.memoryState.keywordPolicies}
+        keywordPolicyName={props.memoryState.keywordPolicyName}
+        setKeywordPolicyName={props.memoryState.setKeywordPolicyName}
+        keywordPositiveText={props.memoryState.keywordPositiveText}
+        setKeywordPositiveText={props.memoryState.setKeywordPositiveText}
+        keywordNegativeText={props.memoryState.keywordNegativeText}
+        setKeywordNegativeText={props.memoryState.setKeywordNegativeText}
+        keywordPathPositiveText={props.memoryState.keywordPathPositiveText}
+        setKeywordPathPositiveText={props.memoryState.setKeywordPathPositiveText}
+        keywordPathNegativeText={props.memoryState.keywordPathNegativeText}
+        setKeywordPathNegativeText={props.memoryState.setKeywordPathNegativeText}
+        keywordWeightPositive={props.memoryState.keywordWeightPositive}
+        setKeywordWeightPositive={props.memoryState.setKeywordWeightPositive}
+        keywordWeightNegative={props.memoryState.keywordWeightNegative}
+        setKeywordWeightNegative={props.memoryState.setKeywordWeightNegative}
+        keywordPolicyEnabled={props.memoryState.keywordPolicyEnabled}
+        setKeywordPolicyEnabled={props.memoryState.setKeywordPolicyEnabled}
+        keywordPolicyReason={props.memoryState.keywordPolicyReason}
+        setKeywordPolicyReason={props.memoryState.setKeywordPolicyReason}
+        createDecisionKeywordPolicy={props.memoryActions.createDecisionKeywordPolicy}
+        patchDecisionKeywordPolicy={props.memoryActions.patchDecisionKeywordPolicy}
+        deleteDecisionKeywordPolicy={props.memoryActions.deleteDecisionKeywordPolicy}
+      />
+
+      <DecisionsPanel
+        selectedWorkspace={props.selectedWorkspace}
+        projects={props.workspaceState.projects}
+        decisionProjectFilter={props.memoryState.decisionProjectFilter}
+        setDecisionProjectFilter={props.memoryState.setDecisionProjectFilter}
+        decisionStatusFilter={props.memoryState.decisionStatusFilter}
+        setDecisionStatusFilter={props.memoryState.setDecisionStatusFilter}
+        decisionConfidenceMinFilter={props.memoryState.decisionConfidenceMinFilter}
+        setDecisionConfidenceMinFilter={props.memoryState.setDecisionConfidenceMinFilter}
+        decisionConfidenceMaxFilter={props.memoryState.decisionConfidenceMaxFilter}
+        setDecisionConfidenceMaxFilter={props.memoryState.setDecisionConfidenceMaxFilter}
+        decisionLimit={props.memoryState.decisionLimit}
+        setDecisionLimit={props.memoryState.setDecisionLimit}
+        decisions={props.memoryState.decisions}
+        loadDecisions={props.memoryActions.loadDecisions}
+        setDecisionStatus={props.memoryActions.setDecisionStatus}
+      />
+
+      <OutboundMessagingPanel
+        workspaceDefaultLocale={props.integrationsState.workspaceOutboundDefaultLocale}
+        setWorkspaceDefaultLocale={props.integrationsState.setWorkspaceOutboundDefaultLocale}
+        workspaceSupportedLocales={props.integrationsState.workspaceOutboundSupportedLocales}
+        setWorkspaceSupportedLocales={props.integrationsState.setWorkspaceOutboundSupportedLocales}
+        outboundSettingsReason={props.integrationsState.outboundSettingsReason}
+        setOutboundSettingsReason={props.integrationsState.setOutboundSettingsReason}
+        saveWorkspaceOutboundSettings={props.integrationsActions.saveWorkspaceOutboundSettings}
+        selectedIntegration={props.integrationsState.selectedOutboundIntegration}
+        setSelectedIntegration={props.integrationsState.setSelectedOutboundIntegration}
+        policyEnabled={props.integrationsState.outboundPolicyEnabled}
+        setPolicyEnabled={props.integrationsState.setOutboundPolicyEnabled}
+        policyMode={props.integrationsState.outboundPolicyMode}
+        setPolicyMode={props.integrationsState.setOutboundPolicyMode}
+        policyStyle={props.integrationsState.outboundPolicyStyle}
+        setPolicyStyle={props.integrationsState.setOutboundPolicyStyle}
+        policyLocaleDefault={props.integrationsState.outboundPolicyLocaleDefault}
+        setPolicyLocaleDefault={props.integrationsState.setOutboundPolicyLocaleDefault}
+        policySupportedLocales={props.integrationsState.outboundPolicySupportedLocales}
+        setPolicySupportedLocales={props.integrationsState.setOutboundPolicySupportedLocales}
+        templateOverridesJson={props.integrationsState.outboundTemplateOverridesJson}
+        setTemplateOverridesJson={props.integrationsState.setOutboundTemplateOverridesJson}
+        llmPromptSystem={props.integrationsState.outboundLlmPromptSystem}
+        setLlmPromptSystem={props.integrationsState.setOutboundLlmPromptSystem}
+        llmPromptUser={props.integrationsState.outboundLlmPromptUser}
+        setLlmPromptUser={props.integrationsState.setOutboundLlmPromptUser}
+        outboundPolicyReason={props.integrationsState.outboundPolicyReason}
+        setOutboundPolicyReason={props.integrationsState.setOutboundPolicyReason}
+        saveOutboundPolicy={props.integrationsActions.saveOutboundPolicy}
+      />
+
+      <OidcSsoPanel
+        selectedWorkspace={props.selectedWorkspace}
+        oidcSyncMode={props.workspaceState.oidcSyncMode}
+        setOidcSyncMode={props.workspaceState.setOidcSyncMode}
+        oidcAllowAutoProvision={props.workspaceState.oidcAllowAutoProvision}
+        setOidcAllowAutoProvision={props.workspaceState.setOidcAllowAutoProvision}
+        saveWorkspaceSsoSettings={props.workspaceActions.saveWorkspaceSsoSettings}
+        providers={props.workspaceState.oidcProviders}
+        selectedProviderId={props.workspaceState.selectedOidcProviderId}
+        setSelectedProviderId={props.workspaceState.setSelectedOidcProviderId}
+        providerName={props.workspaceState.oidcProviderName}
+        setProviderName={props.workspaceState.setOidcProviderName}
+        providerIssuerUrl={props.workspaceState.oidcProviderIssuerUrl}
+        setProviderIssuerUrl={props.workspaceState.setOidcProviderIssuerUrl}
+        providerClientId={props.workspaceState.oidcProviderClientId}
+        setProviderClientId={props.workspaceState.setOidcProviderClientId}
+        providerClientSecret={props.workspaceState.oidcProviderClientSecret}
+        setProviderClientSecret={props.workspaceState.setOidcProviderClientSecret}
+        providerDiscoveryEnabled={props.workspaceState.oidcProviderDiscoveryEnabled}
+        setProviderDiscoveryEnabled={props.workspaceState.setOidcProviderDiscoveryEnabled}
+        providerScopes={props.workspaceState.oidcProviderScopes}
+        setProviderScopes={props.workspaceState.setOidcProviderScopes}
+        claimGroupsName={props.workspaceState.oidcClaimGroupsName}
+        setClaimGroupsName={props.workspaceState.setOidcClaimGroupsName}
+        claimGroupsFormat={props.workspaceState.oidcClaimGroupsFormat}
+        setClaimGroupsFormat={props.workspaceState.setOidcClaimGroupsFormat}
+        providerEnabled={props.workspaceState.oidcProviderEnabled}
+        setProviderEnabled={props.workspaceState.setOidcProviderEnabled}
+        saveProvider={props.workspaceActions.saveOidcProvider}
+        mappings={props.workspaceState.oidcMappings}
+        mappingClaimName={props.workspaceState.oidcMappingClaimName}
+        setMappingClaimName={props.workspaceState.setOidcMappingClaimName}
+        mappingGroupId={props.workspaceState.oidcMappingGroupId}
+        setMappingGroupId={props.workspaceState.setOidcMappingGroupId}
+        mappingDisplayName={props.workspaceState.oidcMappingDisplayName}
+        setMappingDisplayName={props.workspaceState.setOidcMappingDisplayName}
+        mappingTargetType={props.workspaceState.oidcMappingTargetType}
+        setMappingTargetType={props.workspaceState.setOidcMappingTargetType}
+        mappingTargetKey={props.workspaceState.oidcMappingTargetKey}
+        setMappingTargetKey={props.workspaceState.setOidcMappingTargetKey}
+        mappingRole={props.workspaceState.oidcMappingRole}
+        setMappingRole={props.workspaceState.setOidcMappingRole}
+        mappingPriority={props.workspaceState.oidcMappingPriority}
+        setMappingPriority={props.workspaceState.setOidcMappingPriority}
+        mappingEnabled={props.workspaceState.oidcMappingEnabled}
+        setMappingEnabled={props.workspaceState.setOidcMappingEnabled}
+        createMapping={props.workspaceActions.createOidcMapping}
+        patchMapping={props.workspaceActions.patchOidcMapping}
+        deleteMapping={props.workspaceActions.deleteOidcMapping}
+        reason={props.workspaceState.oidcSettingsReason}
+        setReason={props.workspaceState.setOidcSettingsReason}
+      />
+
+      <IntegrationsPanel
+        selectedWorkspace={props.selectedWorkspace}
+        monorepoContextMode={props.workspaceState.monorepoContextMode}
+        githubAutoCreateProjects={props.workspaceState.githubAutoCreateProjects}
+        setGithubAutoCreateProjects={props.workspaceState.setGithubAutoCreateProjects}
+        githubAutoCreateSubprojects={props.workspaceState.githubAutoCreateSubprojects}
+        setGithubAutoCreateSubprojects={props.workspaceState.setGithubAutoCreateSubprojects}
+        githubPermissionSyncEnabled={props.workspaceState.githubPermissionSyncEnabled}
+        setGithubPermissionSyncEnabled={props.workspaceState.setGithubPermissionSyncEnabled}
+        githubPermissionSyncMode={props.workspaceState.githubPermissionSyncMode}
+        setGithubPermissionSyncMode={props.workspaceState.setGithubPermissionSyncMode}
+        githubCacheTtlSeconds={props.workspaceState.githubCacheTtlSeconds}
+        setGithubCacheTtlSeconds={props.workspaceState.setGithubCacheTtlSeconds}
+        githubWebhookEnabled={props.workspaceState.githubWebhookEnabled}
+        setGithubWebhookEnabled={props.workspaceState.setGithubWebhookEnabled}
+        githubWebhookSyncMode={props.workspaceState.githubWebhookSyncMode}
+        setGithubWebhookSyncMode={props.workspaceState.setGithubWebhookSyncMode}
+        githubTeamMappingEnabled={props.workspaceState.githubTeamMappingEnabled}
+        setGithubTeamMappingEnabled={props.workspaceState.setGithubTeamMappingEnabled}
+        githubRoleMappingJson={props.workspaceState.githubRoleMappingJson}
+        setGithubRoleMappingJson={props.workspaceState.setGithubRoleMappingJson}
+        githubProjectKeyPrefix={props.workspaceState.githubProjectKeyPrefix}
+        setGithubProjectKeyPrefix={props.workspaceState.setGithubProjectKeyPrefix}
+        setGithubPrefix={props.workspaceState.setGithubPrefix}
+        saveGithubProjectSettings={props.workspaceActions.saveWorkspaceSettings}
+        securityStreamEnabled={props.workspaceState.securityStreamEnabled}
+        setSecurityStreamEnabled={props.workspaceState.setSecurityStreamEnabled}
+        securityStreamSinkId={props.workspaceState.securityStreamSinkId}
+        setSecurityStreamSinkId={props.workspaceState.setSecurityStreamSinkId}
+        securityStreamMinSeverity={props.workspaceState.securityStreamMinSeverity}
+        setSecurityStreamMinSeverity={props.workspaceState.setSecurityStreamMinSeverity}
+        workspaceMembers={props.authState.workspaceMembers}
+        integrationStates={props.integrationsState.integrationStates}
+        integrationReason={props.integrationsState.integrationReason}
+        setIntegrationReason={props.integrationsState.setIntegrationReason}
+        githubInstallation={props.integrationsState.githubInstallation}
+        githubRepos={props.integrationsState.githubRepos}
+        githubLastSyncSummary={props.integrationsState.githubLastSyncSummary}
+        githubInstallUrl={props.integrationsState.githubInstallUrl}
+        githubUserLinks={props.integrationsState.githubUserLinks}
+        githubPermissionStatus={props.integrationsState.githubPermissionStatus}
+        githubLastPermissionSyncResult={props.integrationsState.githubLastPermissionSyncResult}
+        githubPermissionPreview={props.integrationsState.githubPermissionPreview}
+        githubPermissionCacheStatus={props.integrationsState.githubPermissionCacheStatus}
+        githubWebhookDeliveries={props.integrationsState.githubWebhookDeliveries}
+        githubTeamMappings={props.integrationsState.githubTeamMappings}
+        auditSinks={props.integrationsState.auditSinks}
+        auditDeliveries={props.integrationsState.auditDeliveries}
+        auditDeliveryStatusFilter={props.integrationsState.auditDeliveryStatusFilter}
+        setAuditDeliveryStatusFilter={props.integrationsState.setAuditDeliveryStatusFilter}
+        newAuditSinkType={props.integrationsState.newAuditSinkType}
+        setNewAuditSinkType={props.integrationsState.setNewAuditSinkType}
+        newAuditSinkName={props.integrationsState.newAuditSinkName}
+        setNewAuditSinkName={props.integrationsState.setNewAuditSinkName}
+        newAuditSinkEnabled={props.integrationsState.newAuditSinkEnabled}
+        setNewAuditSinkEnabled={props.integrationsState.setNewAuditSinkEnabled}
+        newAuditSinkEndpointUrl={props.integrationsState.newAuditSinkEndpointUrl}
+        setNewAuditSinkEndpointUrl={props.integrationsState.setNewAuditSinkEndpointUrl}
+        newAuditSinkSecret={props.integrationsState.newAuditSinkSecret}
+        setNewAuditSinkSecret={props.integrationsState.setNewAuditSinkSecret}
+        newAuditSinkEventFilterJson={props.integrationsState.newAuditSinkEventFilterJson}
+        setNewAuditSinkEventFilterJson={props.integrationsState.setNewAuditSinkEventFilterJson}
+        newAuditSinkRetryPolicyJson={props.integrationsState.newAuditSinkRetryPolicyJson}
+        setNewAuditSinkRetryPolicyJson={props.integrationsState.setNewAuditSinkRetryPolicyJson}
+        auditSinkReason={props.integrationsState.auditSinkReason}
+        setAuditSinkReason={props.integrationsState.setAuditSinkReason}
+        detectionRules={props.integrationsState.detectionRules}
+        detections={props.integrationsState.detections}
+        detectionStatusFilter={props.integrationsState.detectionStatusFilter}
+        setDetectionStatusFilter={props.integrationsState.setDetectionStatusFilter}
+        newDetectionRuleName={props.integrationsState.newDetectionRuleName}
+        setNewDetectionRuleName={props.integrationsState.setNewDetectionRuleName}
+        newDetectionRuleEnabled={props.integrationsState.newDetectionRuleEnabled}
+        setNewDetectionRuleEnabled={props.integrationsState.setNewDetectionRuleEnabled}
+        newDetectionRuleSeverity={props.integrationsState.newDetectionRuleSeverity}
+        setNewDetectionRuleSeverity={props.integrationsState.setNewDetectionRuleSeverity}
+        newDetectionRuleConditionJson={props.integrationsState.newDetectionRuleConditionJson}
+        setNewDetectionRuleConditionJson={props.integrationsState.setNewDetectionRuleConditionJson}
+        newDetectionRuleNotifyJson={props.integrationsState.newDetectionRuleNotifyJson}
+        setNewDetectionRuleNotifyJson={props.integrationsState.setNewDetectionRuleNotifyJson}
+        detectionRuleReason={props.integrationsState.detectionRuleReason}
+        setDetectionRuleReason={props.integrationsState.setDetectionRuleReason}
+        githubLinkUserId={props.integrationsState.githubLinkUserId}
+        setGithubLinkUserId={props.integrationsState.setGithubLinkUserId}
+        githubLinkLogin={props.integrationsState.githubLinkLogin}
+        setGithubLinkLogin={props.integrationsState.setGithubLinkLogin}
+        githubTeamMappingProviderInstallationId={props.integrationsState.githubTeamMappingProviderInstallationId}
+        setGithubTeamMappingProviderInstallationId={props.integrationsState.setGithubTeamMappingProviderInstallationId}
+        githubTeamMappingTeamId={props.integrationsState.githubTeamMappingTeamId}
+        setGithubTeamMappingTeamId={props.integrationsState.setGithubTeamMappingTeamId}
+        githubTeamMappingTeamSlug={props.integrationsState.githubTeamMappingTeamSlug}
+        setGithubTeamMappingTeamSlug={props.integrationsState.setGithubTeamMappingTeamSlug}
+        githubTeamMappingOrgLogin={props.integrationsState.githubTeamMappingOrgLogin}
+        setGithubTeamMappingOrgLogin={props.integrationsState.setGithubTeamMappingOrgLogin}
+        githubTeamMappingTargetType={props.integrationsState.githubTeamMappingTargetType}
+        setGithubTeamMappingTargetType={props.integrationsState.setGithubTeamMappingTargetType}
+        githubTeamMappingTargetKey={props.integrationsState.githubTeamMappingTargetKey}
+        setGithubTeamMappingTargetKey={props.integrationsState.setGithubTeamMappingTargetKey}
+        githubTeamMappingRole={props.integrationsState.githubTeamMappingRole}
+        setGithubTeamMappingRole={props.integrationsState.setGithubTeamMappingRole}
+        githubTeamMappingPriority={props.integrationsState.githubTeamMappingPriority}
+        setGithubTeamMappingPriority={props.integrationsState.setGithubTeamMappingPriority}
+        githubTeamMappingEnabledState={props.integrationsState.githubTeamMappingEnabled}
+        setGithubTeamMappingEnabledState={props.integrationsState.setGithubTeamMappingEnabled}
+        generateGithubInstallUrl={props.integrationsActions.generateGithubInstallUrl}
+        syncGithubRepos={props.integrationsActions.syncGithubRepos}
+        syncGithubPermissions={props.integrationsActions.syncGithubPermissions}
+        previewGithubPermissions={props.integrationsActions.previewGithubPermissions}
+        loadGithubCacheStatus={props.integrationsActions.loadGithubCacheStatus}
+        loadAuditDeliveries={props.integrationsActions.loadAuditDeliveries}
+        createAuditSink={props.integrationsActions.createAuditSink}
+        patchAuditSink={props.integrationsActions.patchAuditSink}
+        deleteAuditSink={props.integrationsActions.deleteAuditSink}
+        testAuditSink={props.integrationsActions.testAuditSink}
+        createDetectionRule={props.integrationsActions.createDetectionRule}
+        patchDetectionRule={props.integrationsActions.patchDetectionRule}
+        deleteDetectionRule={props.integrationsActions.deleteDetectionRule}
+        loadDetections={props.integrationsActions.loadDetections}
+        updateDetectionStatus={props.integrationsActions.updateDetectionStatus}
+        createGithubUserLink={props.integrationsActions.createGithubUserLink}
+        deleteGithubUserLink={props.integrationsActions.deleteGithubUserLink}
+        createGithubTeamMapping={props.integrationsActions.createGithubTeamMapping}
+        patchGithubTeamMapping={props.integrationsActions.patchGithubTeamMapping}
+        deleteGithubTeamMapping={props.integrationsActions.deleteGithubTeamMapping}
+        notionLocked={notionLocked}
+        notionEnabled={props.integrationsState.notionEnabled}
+        setNotionEnabled={props.integrationsState.setNotionEnabled}
+        notionWriteEnabled={props.integrationsState.notionWriteEnabled}
+        setNotionWriteEnabled={props.integrationsState.setNotionWriteEnabled}
+        notionWriteOnCommit={props.integrationsState.notionWriteOnCommit}
+        setNotionWriteOnCommit={props.integrationsState.setNotionWriteOnCommit}
+        notionWriteOnMerge={props.integrationsState.notionWriteOnMerge}
+        setNotionWriteOnMerge={props.integrationsState.setNotionWriteOnMerge}
+        notionParentPageId={props.integrationsState.notionParentPageId}
+        setNotionParentPageId={props.integrationsState.setNotionParentPageId}
+        notionToken={props.integrationsState.notionToken}
+        setNotionToken={props.integrationsState.setNotionToken}
+        saveNotionIntegration={props.integrationsActions.saveNotionIntegration}
+        jiraLocked={jiraLocked}
+        jiraEnabled={props.integrationsState.jiraEnabled}
+        setJiraEnabled={props.integrationsState.setJiraEnabled}
+        jiraWriteOnCommit={props.integrationsState.jiraWriteOnCommit}
+        setJiraWriteOnCommit={props.integrationsState.setJiraWriteOnCommit}
+        jiraWriteOnMerge={props.integrationsState.jiraWriteOnMerge}
+        setJiraWriteOnMerge={props.integrationsState.setJiraWriteOnMerge}
+        jiraBaseUrl={props.integrationsState.jiraBaseUrl}
+        setJiraBaseUrl={props.integrationsState.setJiraBaseUrl}
+        jiraEmail={props.integrationsState.jiraEmail}
+        setJiraEmail={props.integrationsState.setJiraEmail}
+        jiraToken={props.integrationsState.jiraToken}
+        setJiraToken={props.integrationsState.setJiraToken}
+        saveJiraIntegration={props.integrationsActions.saveJiraIntegration}
+        confluenceLocked={confluenceLocked}
+        confluenceEnabled={props.integrationsState.confluenceEnabled}
+        setConfluenceEnabled={props.integrationsState.setConfluenceEnabled}
+        confluenceWriteOnCommit={props.integrationsState.confluenceWriteOnCommit}
+        setConfluenceWriteOnCommit={props.integrationsState.setConfluenceWriteOnCommit}
+        confluenceWriteOnMerge={props.integrationsState.confluenceWriteOnMerge}
+        setConfluenceWriteOnMerge={props.integrationsState.setConfluenceWriteOnMerge}
+        confluenceBaseUrl={props.integrationsState.confluenceBaseUrl}
+        setConfluenceBaseUrl={props.integrationsState.setConfluenceBaseUrl}
+        confluenceEmail={props.integrationsState.confluenceEmail}
+        setConfluenceEmail={props.integrationsState.setConfluenceEmail}
+        confluenceToken={props.integrationsState.confluenceToken}
+        setConfluenceToken={props.integrationsState.setConfluenceToken}
+        saveConfluenceIntegration={props.integrationsActions.saveConfluenceIntegration}
+        linearLocked={linearLocked}
+        linearEnabled={props.integrationsState.linearEnabled}
+        setLinearEnabled={props.integrationsState.setLinearEnabled}
+        linearWriteOnCommit={props.integrationsState.linearWriteOnCommit}
+        setLinearWriteOnCommit={props.integrationsState.setLinearWriteOnCommit}
+        linearWriteOnMerge={props.integrationsState.linearWriteOnMerge}
+        setLinearWriteOnMerge={props.integrationsState.setLinearWriteOnMerge}
+        linearApiUrl={props.integrationsState.linearApiUrl}
+        setLinearApiUrl={props.integrationsState.setLinearApiUrl}
+        linearApiKey={props.integrationsState.linearApiKey}
+        setLinearApiKey={props.integrationsState.setLinearApiKey}
+        saveLinearIntegration={props.integrationsActions.saveLinearIntegration}
+        slackLocked={slackLocked}
+        slackEnabled={props.integrationsState.slackEnabled}
+        setSlackEnabled={props.integrationsState.setSlackEnabled}
+        slackWebhookUrl={props.integrationsState.slackWebhookUrl}
+        setSlackWebhookUrl={props.integrationsState.setSlackWebhookUrl}
+        slackDefaultChannel={props.integrationsState.slackDefaultChannel}
+        setSlackDefaultChannel={props.integrationsState.setSlackDefaultChannel}
+        slackActionPrefixes={props.integrationsState.slackActionPrefixes}
+        setSlackActionPrefixes={props.integrationsState.setSlackActionPrefixes}
+        slackFormat={props.integrationsState.slackFormat}
+        setSlackFormat={props.integrationsState.setSlackFormat}
+        slackIncludeTargetJson={props.integrationsState.slackIncludeTargetJson}
+        setSlackIncludeTargetJson={props.integrationsState.setSlackIncludeTargetJson}
+        slackMaskSecrets={props.integrationsState.slackMaskSecrets}
+        setSlackMaskSecrets={props.integrationsState.setSlackMaskSecrets}
+        slackRoutesJson={props.integrationsState.slackRoutesJson}
+        setSlackRoutesJson={props.integrationsState.setSlackRoutesJson}
+        slackSeverityRulesJson={props.integrationsState.slackSeverityRulesJson}
+        setSlackSeverityRulesJson={props.integrationsState.setSlackSeverityRulesJson}
+        saveSlackIntegration={props.integrationsActions.saveSlackIntegration}
+        auditReasonerLocked={auditReasonerLocked}
+        auditReasonerEnabled={props.integrationsState.auditReasonerEnabled}
+        setAuditReasonerEnabled={props.integrationsState.setAuditReasonerEnabled}
+        auditReasonerOrderCsv={props.integrationsState.auditReasonerOrderCsv}
+        setAuditReasonerOrderCsv={props.integrationsState.setAuditReasonerOrderCsv}
+        auditReasonerOpenAiModel={props.integrationsState.auditReasonerOpenAiModel}
+        setAuditReasonerOpenAiModel={props.integrationsState.setAuditReasonerOpenAiModel}
+        auditReasonerOpenAiBaseUrl={props.integrationsState.auditReasonerOpenAiBaseUrl}
+        setAuditReasonerOpenAiBaseUrl={props.integrationsState.setAuditReasonerOpenAiBaseUrl}
+        auditReasonerOpenAiApiKey={props.integrationsState.auditReasonerOpenAiApiKey}
+        setAuditReasonerOpenAiApiKey={props.integrationsState.setAuditReasonerOpenAiApiKey}
+        auditReasonerClaudeModel={props.integrationsState.auditReasonerClaudeModel}
+        setAuditReasonerClaudeModel={props.integrationsState.setAuditReasonerClaudeModel}
+        auditReasonerClaudeBaseUrl={props.integrationsState.auditReasonerClaudeBaseUrl}
+        setAuditReasonerClaudeBaseUrl={props.integrationsState.setAuditReasonerClaudeBaseUrl}
+        auditReasonerClaudeApiKey={props.integrationsState.auditReasonerClaudeApiKey}
+        setAuditReasonerClaudeApiKey={props.integrationsState.setAuditReasonerClaudeApiKey}
+        auditReasonerGeminiModel={props.integrationsState.auditReasonerGeminiModel}
+        setAuditReasonerGeminiModel={props.integrationsState.setAuditReasonerGeminiModel}
+        auditReasonerGeminiBaseUrl={props.integrationsState.auditReasonerGeminiBaseUrl}
+        setAuditReasonerGeminiBaseUrl={props.integrationsState.setAuditReasonerGeminiBaseUrl}
+        auditReasonerGeminiApiKey={props.integrationsState.auditReasonerGeminiApiKey}
+        setAuditReasonerGeminiApiKey={props.integrationsState.setAuditReasonerGeminiApiKey}
+        saveAuditReasonerIntegration={props.integrationsActions.saveAuditReasonerIntegration}
+      />
+
+      <ProjectMappingsPanel
+        mappingReason={props.workspaceState.mappingReason}
+        setMappingReason={props.workspaceState.setMappingReason}
+        createProjectMapping={props.workspaceActions.createProjectMapping}
+        newMappingKind={props.workspaceState.newMappingKind}
+        setNewMappingKind={props.workspaceState.setNewMappingKind}
+        newMappingProjectKey={props.workspaceState.newMappingProjectKey}
+        setNewMappingProjectKey={props.workspaceState.setNewMappingProjectKey}
+        newMappingExternalId={props.workspaceState.newMappingExternalId}
+        setNewMappingExternalId={props.workspaceState.setNewMappingExternalId}
+        newMappingPriority={props.workspaceState.newMappingPriority}
+        setNewMappingPriority={props.workspaceState.setNewMappingPriority}
+        newMappingEnabled={props.workspaceState.newMappingEnabled}
+        setNewMappingEnabled={props.workspaceState.setNewMappingEnabled}
+        projects={props.workspaceState.projects}
+        mappings={props.workspaceState.mappings}
+        patchMapping={props.workspaceActions.patchMapping}
+      />
+
+      <ProjectsPanel
+        projects={props.filteredProjects}
+        selectedProject={props.workspaceState.selectedProject}
+        setSelectedProject={props.workspaceState.setSelectedProject}
+        projectViewFilter={props.workspaceState.projectViewFilter}
+        setProjectViewFilter={props.workspaceState.setProjectViewFilter}
+        createProject={props.workspaceActions.createProject}
+        bootstrapProjectContext={props.workspaceActions.bootstrapProjectContext}
+        newProjectKey={props.workspaceState.newProjectKey}
+        setNewProjectKey={props.workspaceState.setNewProjectKey}
+        newProjectName={props.workspaceState.newProjectName}
+        setNewProjectName={props.workspaceState.setNewProjectName}
+      />
+
+      <WorkspaceMembersPanel
+        members={props.authState.workspaceMembers}
+        addMember={props.authActions.addWorkspaceMember}
+        createInvite={props.authActions.createWorkspaceInvite}
+        updateMemberRole={props.authActions.updateWorkspaceMemberRole}
+        removeMember={props.authActions.removeWorkspaceMember}
+        email={props.authState.workspaceMemberEmail}
+        setEmail={props.authState.setWorkspaceMemberEmail}
+        role={props.authState.workspaceMemberRole}
+        setRole={props.authState.setWorkspaceMemberRole}
+        inviteEmail={props.authState.workspaceInviteEmail}
+        setInviteEmail={props.authState.setWorkspaceInviteEmail}
+        inviteRole={props.authState.workspaceInviteRole}
+        setInviteRole={props.authState.setWorkspaceInviteRole}
+        inviteProjectRolesJson={props.authState.workspaceInviteProjectRolesJson}
+        setInviteProjectRolesJson={props.authState.setWorkspaceInviteProjectRolesJson}
+        latestInviteUrl={props.authState.latestInviteUrl}
+        latestInviteExpiresAt={props.authState.latestInviteExpiresAt}
+        clearLatestInvite={() => {
+          props.authState.setLatestInviteUrl('');
+          props.authState.setLatestInviteExpiresAt('');
+        }}
+      />
+
+      <ApiKeysPanel
+        members={props.authState.workspaceMembers}
+        selfKeys={props.authState.selfApiKeys}
+        selectedUserId={props.authState.selectedApiKeyUserId}
+        setSelectedUserId={props.authState.setSelectedApiKeyUserId}
+        selectedUserKeys={props.authState.selectedUserApiKeys}
+        selfLabel={props.authState.selfApiKeyLabel}
+        setSelfLabel={props.authState.setSelfApiKeyLabel}
+        createSelfKey={props.authActions.createSelfApiKey}
+        revokeSelfKey={props.authActions.revokeSelfApiKey}
+        revokeUserKey={props.authActions.revokeSelectedUserApiKey}
+        resetUserKeys={props.authActions.resetSelectedUserApiKeys}
+        latestSelfPlainKey={props.authState.generatedSelfApiKey}
+        clearSelfPlainKey={() => props.authState.setGeneratedSelfApiKey('')}
+        latestOneTimeUrl={props.authState.latestOneTimeUrl}
+        latestOneTimeExpiresAt={props.authState.latestOneTimeExpiresAt}
+        clearLatestOneTime={() => {
+          props.authState.setLatestOneTimeUrl('');
+          props.authState.setLatestOneTimeExpiresAt('');
+        }}
+      />
+
+      <ProjectMembersPanel
+        addProjectMember={props.workspaceActions.addProjectMember}
+        updateProjectMemberRole={props.workspaceActions.updateProjectMemberRole}
+        removeProjectMember={props.workspaceActions.removeProjectMember}
+        inviteEmail={props.workspaceState.inviteEmail}
+        setInviteEmail={props.workspaceState.setInviteEmail}
+        inviteRole={props.workspaceState.inviteRole}
+        setInviteRole={props.workspaceState.setInviteRole}
+        members={props.workspaceState.members}
+      />
+    </>
+  );
+}

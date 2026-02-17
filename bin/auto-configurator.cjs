@@ -6,6 +6,16 @@ const os = require('os');
 const { execSync } = require('child_process');
 const PLATFORM_CONFIGS = require('./platform-configs.cjs');
 const yaml = require('js-yaml');
+const {
+  objectToYaml,
+  processTemplate,
+  renderTomlTable,
+  escapeRegex,
+  buildServerDefinition,
+  buildConfigPayload,
+  mergeConfigs,
+  findContextSyncConfig,
+} = require('./auto-configurator-utils.cjs');
 
 /**
  * Platform Detection and Auto-Configuration System
@@ -261,17 +271,17 @@ class PlatformAutoConfigurator {
     }
 
     // Check if already configured BEFORE merging
-    const contextSyncKey = this.findContextSyncConfig(config);
+    const contextSyncKey = findContextSyncConfig(config);
     if (contextSyncKey) {
       return { success: false, reason: 'Already configured' };
     }
 
     // Create structure from adapter or legacy template
-    const template = this.buildConfigPayload(configInfo, platformId);
-    const newConfig = this.processTemplate(template, this.packagePath);
+    const template = buildConfigPayload(configInfo, platformId);
+    const newConfig = processTemplate(template, this.packagePath);
 
     // Merge configurations
-    config = this.mergeConfigs(config, newConfig);
+    config = mergeConfigs(config, newConfig);
 
     // Create backup
     if (fs.existsSync(configPath)) {
@@ -333,7 +343,7 @@ class PlatformAutoConfigurator {
       }
 
       // Use workspaceStructure (direct server definition, NOT nested)
-      const structure = configInfo.workspaceStructure || this.buildServerDefinition(configInfo);
+      const structure = configInfo.workspaceStructure || buildServerDefinition(configInfo);
 
       // Determine file name - use a simple, standard name
       const fileName = 'claustrum.yaml';
@@ -354,10 +364,10 @@ class PlatformAutoConfigurator {
       }
 
       // Process template (replace {{packagePath}} if present)
-      const processed = this.processTemplate(structure, this.packagePath);
+      const processed = processTemplate(structure, this.packagePath);
       
       // Convert to YAML - workspace configs use direct server definition
-      const yamlText = this.objectToYaml(processed);
+      const yamlText = objectToYaml(processed);
 
       fs.writeFileSync(filePath, yamlText, 'utf8');
       if (this.verbose) console.log(`     Created workspace config: ${filePath}`);
@@ -422,10 +432,10 @@ class PlatformAutoConfigurator {
       }
 
       // Use globalStructure or default
-      const newEntry = configInfo.globalStructure || this.buildServerDefinition(configInfo);
+      const newEntry = configInfo.globalStructure || buildServerDefinition(configInfo);
 
       // Process template
-      const processed = this.processTemplate(newEntry, this.packagePath);
+      const processed = processTemplate(newEntry, this.packagePath);
 
       // Ensure mcpServers array exists
       if (!Array.isArray(configObj.mcpServers)) {
@@ -442,137 +452,6 @@ class PlatformAutoConfigurator {
       return { success: true, path: globalPath, type: 'global' };
     } catch (error) {
       return { success: false, reason: `Error writing global config: ${error.message}` };
-    }
-  }
-
-  /**
-   * YAML serializer using js-yaml for robust output.
-   */
-  objectToYaml(obj) {
-    try {
-      return yaml.dump(obj, { noRefs: true, sortKeys: false });
-    } catch (e) {
-      // Fallback to a minimal JSON-to-YAML style string if yaml.dump fails
-      return JSON.stringify(obj, null, 2) + '\n';
-    }
-  }
-
-  /**
-   * Process template strings, replacing {{packagePath}} with actual path
-   */
-  processTemplate(template, packagePath) {
-    const processed = JSON.parse(JSON.stringify(template));
-    
-    const processObject = (obj) => {
-      for (const key in obj) {
-        if (typeof obj[key] === 'string') {
-          obj[key] = obj[key].replace('{{packagePath}}', packagePath);
-        } else if (typeof obj[key] === 'object' && obj[key] !== null) {
-          processObject(obj[key]);
-        } else if (Array.isArray(obj[key])) {
-          obj[key] = obj[key].map(item => 
-            typeof item === 'string' ? item.replace('{{packagePath}}', packagePath) : item
-          );
-        }
-      }
-    };
-
-    processObject(processed);
-    return processed;
-  }
-
-  renderTomlTable(tableKey, entries) {
-    const lines = [`[${tableKey}]`];
-    for (const key of Object.keys(entries)) {
-      lines.push(`${key} = ${this.toTomlValue(entries[key])}`);
-    }
-    return lines.join('\n');
-  }
-
-  toTomlValue(value) {
-    if (Array.isArray(value)) {
-      const items = value.map(item => this.toTomlValue(item)).join(', ');
-      return `[${items}]`;
-    }
-    if (typeof value === 'string') {
-      return `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
-    }
-    if (typeof value === 'number' || typeof value === 'boolean') {
-      return String(value);
-    }
-    if (value === null || value === undefined) {
-      return '""';
-    }
-    return `"${String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
-  }
-
-  escapeRegex(value) {
-    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  }
-
-  /**
-   * Build a unified server definition with platform overrides
-   */
-  buildServerDefinition(configInfo) {
-    const base = {
-      name: 'Claustrum',
-      command: 'node',
-      args: ['{{packagePath}}']
-    };
-
-    const overrides = configInfo.serverOverrides || {};
-    return this.mergeConfigs(base, overrides);
-  }
-
-  /**
-   * Build config payload from adapter or legacy structure
-   */
-  buildConfigPayload(configInfo, platformId) {
-    if (!configInfo.adapter) {
-      return configInfo.structure || {};
-    }
-
-    const adapter = configInfo.adapter;
-    const serverId = adapter.serverId || 'claustrum';
-    const serverDef = this.buildServerDefinition(configInfo);
-    const payload = adapter.rootExtras ? JSON.parse(JSON.stringify(adapter.rootExtras)) : {};
-    const serverPayload = { [serverId]: serverDef };
-
-    if (adapter.flatKey) {
-      if (adapter.containerKey) {
-        payload[adapter.flatKey] = {};
-        this.setDeep(payload[adapter.flatKey], adapter.containerKey, serverPayload);
-      } else {
-        payload[adapter.flatKey] = serverPayload;
-      }
-      return payload;
-    }
-
-    if (adapter.containerKey) {
-      this.setDeep(payload, adapter.containerKey, serverPayload);
-    } else {
-      payload[serverId] = serverDef;
-    }
-
-    return payload;
-  }
-
-  /**
-   * Set nested object values using dot paths
-   */
-  setDeep(target, pathKey, value) {
-    const parts = pathKey.split('.');
-    let current = target;
-    for (let i = 0; i < parts.length; i++) {
-      const key = parts[i];
-      if (i === parts.length - 1) {
-        current[key] = value;
-        return;
-      }
-      if (!current[key] || typeof current[key] !== 'object' || Array.isArray(current[key])) {
-        current[key] = {};
-      }
-      current = current[key];
     }
   }
 
@@ -598,7 +477,7 @@ class PlatformAutoConfigurator {
       if (fs.existsSync(configPath)) {
         existing = fs.readFileSync(configPath, 'utf8');
 
-        const tableRegex = new RegExp(`^\\[${this.escapeRegex(tableKey)}\\]\\s*$`, 'm');
+        const tableRegex = new RegExp(`^\\[${escapeRegex(tableKey)}\\]\\s*$`, 'm');
         if (tableRegex.test(existing)) {
           return { success: false, reason: 'Already configured' };
         }
@@ -608,11 +487,11 @@ class PlatformAutoConfigurator {
         if (this.verbose) console.log(`     Backup created: ${backupPath}`);
       }
 
-      const serverDef = this.buildServerDefinition(configInfo);
+      const serverDef = buildServerDefinition(configInfo);
       if (configInfo.omitName) {
         delete serverDef.name;
       }
-      const tomlBlock = this.renderTomlTable(tableKey, serverDef);
+      const tomlBlock = renderTomlTable(tableKey, serverDef);
       const output = existing ? `${existing.trimEnd()}\n\n${tomlBlock}\n` : `${tomlBlock}\n`;
 
       fs.writeFileSync(configPath, output, 'utf8');
@@ -620,43 +499,6 @@ class PlatformAutoConfigurator {
     } catch (error) {
       return { success: false, reason: `Error writing TOML: ${error.message}` };
     }
-  }
-
-  /**
-   * Deep merge two configuration objects
-   */
-  mergeConfigs(existing, newConfig) {
-    const result = { ...existing };
-
-    for (const key in newConfig) {
-      if (typeof newConfig[key] === 'object' && newConfig[key] !== null && !Array.isArray(newConfig[key])) {
-        result[key] = this.mergeConfigs(result[key] || {}, newConfig[key]);
-      } else {
-        result[key] = newConfig[key];
-      }
-    }
-
-    return result;
-  }
-
-  /**
-   * Check if claustrum is already configured
-   */
-  findContextSyncConfig(config) {
-    const search = (obj, path = '') => {
-      for (const key in obj) {
-        if (key === 'claustrum') {
-          return `${path}.${key}`;
-        }
-        if (typeof obj[key] === 'object' && obj[key] !== null) {
-          const found = search(obj[key], `${path}.${key}`);
-          if (found) return found;
-        }
-      }
-      return null;
-    };
-
-    return search(config);
   }
 
   /**
@@ -716,5 +558,3 @@ class PlatformAutoConfigurator {
 }
 
 module.exports = PlatformAutoConfigurator;
-
-

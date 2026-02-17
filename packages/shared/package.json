@@ -6,9 +6,10 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && node scripts/copy-outbound-templates.mjs",
     "dev": "tsc -w -p tsconfig.json",
-    "test": "node -e \"console.log('shared ok')\""
+    "test": "node -e \"console.log('shared ok')\"",
+    "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "zod": "^3.25.76"

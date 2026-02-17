@@ -14,8 +14,19 @@ enum WorkspaceRole {
 }
 
 enum ProjectRole {
+  OWNER
+  MAINTAINER
+  WRITER
+  READER
   ADMIN
   MEMBER
+}
+
+enum RawAccessMinRole {
+  OWNER
+  MAINTAINER
+  WRITER
+  READER
 }
 
 enum ResolutionKind {
@@ -28,6 +39,12 @@ enum MonorepoMode {
   repo_only
   repo_hash_subpath
   repo_colon_subpath
+}
+
+enum MonorepoContextMode {
+  shared_repo
+  split_on_demand
+  split_auto
 }
 
 enum ImportSource {
@@ -67,6 +84,16 @@ enum AutoExtractionMode {
   auto_confirm
 }
 
+enum DecisionExtractionMode {
+  llm_only
+  hybrid_priority
+}
+
+enum DecisionDefaultStatus {
+  draft
+  confirmed
+}
+
 enum SearchDefaultMode {
   hybrid
   keyword
@@ -80,6 +107,128 @@ enum IntegrationProvider {
   linear
   slack
   audit_reasoner
+}
+
+enum OutboundIntegrationType {
+  slack
+  jira
+  confluence
+  notion
+  webhook
+  email
+}
+
+enum OutboundMessageMode {
+  template
+  llm
+}
+
+enum OutboundMessageStyle {
+  short
+  normal
+  verbose
+}
+
+enum OidcClaimGroupsFormat {
+  id
+  name
+}
+
+enum OidcSyncMode {
+  add_only
+  add_and_remove
+}
+
+enum OidcGroupMappingTargetType {
+  workspace
+  project
+}
+
+enum OidcGroupMappingRole {
+  OWNER
+  ADMIN
+  MEMBER
+  MAINTAINER
+  WRITER
+  READER
+}
+
+enum GithubAccountType {
+  Organization
+  User
+}
+
+enum GithubRepositorySelection {
+  all
+  selected
+  unknown
+}
+
+enum GithubPermissionSyncMode {
+  add_only
+  add_and_remove
+}
+
+enum GithubWebhookSyncMode {
+  add_only
+  add_and_remove
+}
+
+enum GithubWebhookEventStatus {
+  queued
+  processing
+  done
+  failed
+}
+
+enum RetentionMode {
+  archive
+  hard_delete
+}
+
+enum AuditSinkType {
+  webhook
+  http
+}
+
+enum AuditDeliveryStatus {
+  queued
+  sending
+  delivered
+  failed
+}
+
+enum SecuritySeverity {
+  low
+  medium
+  high
+}
+
+enum SecurityCategory {
+  auth
+  access
+  data
+  config
+}
+
+enum DetectionStatus {
+  open
+  ack
+  closed
+}
+
+enum GithubTeamMappingTargetType {
+  workspace
+  project
+}
+
+enum GithubTeamMappingRole {
+  OWNER
+  ADMIN
+  MEMBER
+  MAINTAINER
+  WRITER
+  READER
 }
 
 model Workspace {
@@ -99,19 +248,61 @@ model Workspace {
   auditLogs         AuditLog[]
   stagedMemories    StagedMemory[]
   integrations      WorkspaceIntegration[]
+  outboundPolicies  OutboundMessagePolicy[]
+  decisionKeywordPolicies DecisionKeywordPolicy[]
+  invitations       InvitationToken[]
+  oidcProviders     OidcProvider[]
+  oidcGroupMappings OidcGroupMapping[]
+  userIdentities    UserIdentity[]
+  githubInstallation GithubInstallation?
+  githubRepoLinks   GithubRepoLink[]
+  githubUserLinks   GithubUserLink[]
+  githubPermissionCache GithubPermissionCache[]
+  githubRepoTeamsCache GithubRepoTeamsCache[]
+  githubTeamMembersCache GithubTeamMembersCache[]
+  githubWebhookEvents GithubWebhookEvent[]
+  githubTeamMappings GithubTeamMapping[]
+  monorepoSubprojectPolicies MonorepoSubprojectPolicy[]
+  auditSinks        AuditSink[]
+  auditDeliveries   AuditDeliveryQueue[]
+  detectionRules    DetectionRule[]
+  detections        Detection[]
 
   @@map("workspaces")
+}
+
+model MonorepoSubprojectPolicy {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId String    @map("workspace_id")
+  repoKey     String    @map("repo_key")
+  subpath     String
+  enabled     Boolean   @default(true)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, repoKey, subpath])
+  @@index([workspaceId, repoKey, enabled, updatedAt(sort: Desc)])
+  @@map("monorepo_subproject_policies")
 }
 
 model User {
   id                String            @id @default(cuid())
   email             String            @unique
   name              String?
+  passwordHash      String?           @map("password_hash")
+  mustChangePassword Boolean          @default(true) @map("must_change_password")
+  emailVerified     Boolean           @default(false) @map("email_verified")
   createdAt         DateTime          @default(now()) @map("created_at")
   updatedAt         DateTime          @updatedAt @map("updated_at")
   workspaceMembers  WorkspaceMember[]
   projectMembers    ProjectMember[]
   apiKeys           ApiKey[]
+  createdApiKeys    ApiKey[]          @relation("ApiKeyCreatedBy")
+  createdOneTimeTokens ApiKeyOneTimeToken[] @relation("ApiKeyOneTimeTokenCreatedBy")
+  createdInvitations InvitationToken[] @relation("InvitationCreatedBy")
+  identities        UserIdentity[]
+  githubUserLinks   GithubUserLink[]
 
   @@map("users")
 }
@@ -145,6 +336,8 @@ model Project {
   rawSessions RawSession[]
   rawEvents   RawEvent[]
   stagedMemories StagedMemory[]
+  auditLogs   AuditLog[]
+  githubRepoLinks GithubRepoLink[]
 
   @@unique([workspaceId, key])
   @@index([workspaceId, key])
@@ -155,7 +348,7 @@ model ProjectMember {
   id        String      @id @default(cuid())
   projectId String      @map("project_id")
   userId    String      @map("user_id")
-  role      ProjectRole @default(MEMBER)
+  role      ProjectRole @default(READER)
   createdAt DateTime    @default(now()) @map("created_at")
   updatedAt DateTime    @updatedAt @map("updated_at")
   project   Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -216,20 +409,77 @@ model WorkspaceSettings {
   searchHybridAlpha             Float        @default(0.6) @map("search_hybrid_alpha")
   searchHybridBeta              Float        @default(0.4) @map("search_hybrid_beta")
   searchDefaultLimit            Int          @default(20) @map("search_default_limit")
+  searchTypeWeights             Json         @default(dbgenerated("'{\"decision\":1.5,\"constraint\":1.35,\"goal\":1.2,\"activity\":1.05,\"active_work\":1.1,\"summary\":1.2,\"note\":1.0,\"problem\":1.0,\"caveat\":0.95}'::jsonb")) @map("search_type_weights")
+  searchRecencyHalfLifeDays     Float        @default(14) @map("search_recency_half_life_days")
+  searchSubpathBoostWeight      Float        @default(1.5) @map("search_subpath_boost_weight")
+  githubAutoCreateProjects      Boolean      @default(true) @map("github_auto_create_projects")
+  githubAutoCreateSubprojects   Boolean      @default(false) @map("github_auto_create_subprojects")
+  githubProjectKeyPrefix        String       @default("github:") @map("github_project_key_prefix")
+  githubPermissionSyncEnabled   Boolean      @default(false) @map("github_permission_sync_enabled")
+  githubPermissionSyncMode      GithubPermissionSyncMode @default(add_only) @map("github_permission_sync_mode")
+  githubRoleMapping             Json         @default(dbgenerated("'{\"admin\":\"maintainer\",\"maintain\":\"maintainer\",\"write\":\"writer\",\"triage\":\"reader\",\"read\":\"reader\"}'::jsonb")) @map("github_role_mapping")
+  githubCacheTtlSeconds         Int          @default(900) @map("github_cache_ttl_seconds")
+  githubWebhookEnabled          Boolean      @default(false) @map("github_webhook_enabled")
+  githubWebhookSyncMode         GithubWebhookSyncMode @default(add_only) @map("github_webhook_sync_mode")
+  githubTeamMappingEnabled      Boolean      @default(true) @map("github_team_mapping_enabled")
   githubKeyPrefix               String       @default("github:") @map("auto_create_key_prefix")
   localKeyPrefix                String       @default("local:") @map("auto_create_local_key_prefix")
   enableMonorepoResolution      Boolean      @default(false) @map("enable_monorepo_resolution")
   monorepoDetectionLevel        Int          @default(2) @map("monorepo_detection_level")
   monorepoMode                  MonorepoMode @default(repo_hash_subpath) @map("monorepo_mode")
+  monorepoContextMode           MonorepoContextMode @default(shared_repo) @map("monorepo_context_mode")
+  monorepoSubpathMetadataEnabled Boolean     @default(true) @map("monorepo_subpath_metadata_enabled")
+  monorepoSubpathBoostEnabled   Boolean      @default(true) @map("monorepo_subpath_boost_enabled")
+  monorepoSubpathBoostWeight    Float        @default(1.5) @map("monorepo_subpath_boost_weight")
   monorepoRootMarkers           Json         @default(dbgenerated("'[\"pnpm-workspace.yaml\", \"turbo.json\", \"nx.json\", \"lerna.json\"]'::jsonb")) @map("monorepo_root_markers")
   monorepoWorkspaceGlobs        Json         @default(dbgenerated("'[\"apps/*\", \"packages/*\"]'::jsonb")) @map("monorepo_workspace_globs")
   monorepoExcludeGlobs          Json         @default(dbgenerated("'[\"**/node_modules/**\", \"**/.git/**\", \"**/dist/**\", \"**/build/**\", \".next/**\"]'::jsonb")) @map("monorepo_exclude_globs")
   monorepoMaxDepth              Int          @default(3) @map("monorepo_max_depth")
+  defaultOutboundLocale         String       @default("en") @map("default_outbound_locale")
+  supportedOutboundLocales      Json         @default(dbgenerated("'[\"en\", \"ko\", \"ja\", \"es\", \"zh\"]'::jsonb")) @map("supported_outbound_locales")
+  enableActivityAutoLog         Boolean      @default(true) @map("enable_activity_auto_log")
+  enableDecisionExtraction      Boolean      @default(true) @map("enable_decision_extraction")
+  decisionExtractionMode        DecisionExtractionMode @default(llm_only) @map("decision_extraction_mode")
+  decisionDefaultStatus         DecisionDefaultStatus @default(draft) @map("decision_default_status")
+  decisionAutoConfirmEnabled    Boolean      @default(false) @map("decision_auto_confirm_enabled")
+  decisionAutoConfirmMinConfidence Float     @default(0.90) @map("decision_auto_confirm_min_confidence")
+  decisionBatchSize             Int          @default(25) @map("decision_batch_size")
+  decisionBackfillDays          Int          @default(30) @map("decision_backfill_days")
+  rawAccessMinRole              RawAccessMinRole @default(WRITER) @map("raw_access_min_role")
+  retentionPolicyEnabled        Boolean      @default(false) @map("retention_policy_enabled")
+  auditRetentionDays            Int          @default(365) @map("audit_retention_days")
+  rawRetentionDays              Int          @default(90) @map("raw_retention_days")
+  retentionMode                 RetentionMode @default(archive) @map("retention_mode")
+  securityStreamEnabled         Boolean      @default(true) @map("security_stream_enabled")
+  securityStreamSinkId          String?      @map("security_stream_sink_id") @db.Uuid
+  securityStreamMinSeverity     SecuritySeverity @default(medium) @map("security_stream_min_severity")
+  oidcSyncMode                  OidcSyncMode @default(add_only) @map("oidc_sync_mode")
+  oidcAllowAutoProvision        Boolean      @default(true) @map("oidc_allow_auto_provision")
   createdAt                     DateTime     @default(now()) @map("created_at")
   updatedAt                     DateTime     @updatedAt @map("updated_at")
   workspace                     Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  securityStreamSink            AuditSink?   @relation("WorkspaceSecurityStreamSink", fields: [securityStreamSinkId], references: [id], onDelete: SetNull)
 
   @@map("workspace_settings")
+}
+
+model DecisionKeywordPolicy {
+  id                       String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId              String    @map("workspace_id")
+  name                     String
+  positiveKeywords         Json      @default(dbgenerated("'[\"migrate\", \"rename\", \"deprecate\", \"remove\", \"switch\", \"refactor\"]'::jsonb")) @map("positive_keywords")
+  negativeKeywords         Json      @default(dbgenerated("'[\"wip\", \"tmp\", \"debug\", \"test\", \"try\"]'::jsonb")) @map("negative_keywords")
+  filePathPositivePatterns Json      @default(dbgenerated("'[\"prisma/**\", \"apps/memory-core/**\", \"packages/shared/**\"]'::jsonb")) @map("file_path_positive_patterns")
+  filePathNegativePatterns Json      @default(dbgenerated("'[\"**/*.test.*\", \"**/__tests__/**\", \"**/tmp/**\"]'::jsonb")) @map("file_path_negative_patterns")
+  weightPositive           Float     @default(1.0) @map("weight_positive")
+  weightNegative           Float     @default(1.0) @map("weight_negative")
+  enabled                  Boolean   @default(true)
+  createdAt                DateTime  @default(now()) @map("created_at")
+  updatedAt                DateTime  @updatedAt @map("updated_at")
+  workspace                Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, enabled, updatedAt(sort: Desc)])
+  @@map("decision_keyword_policies")
 }
 
 model ProjectMapping {
@@ -251,16 +501,37 @@ model ProjectMapping {
 }
 
 model ApiKey {
-  id        String   @id @default(cuid())
-  key       String   @unique
-  label     String?
-  userId    String   @map("user_id")
-  createdAt DateTime @default(now()) @map("created_at")
-  revokedAt DateTime? @map("revoked_at")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id              String               @id @default(cuid())
+  key             String?              @unique
+  keyHash         String               @unique @map("key_hash")
+  label           String?
+  userId          String               @map("user_id")
+  createdByUserId String?              @map("created_by_user_id")
+  lastUsedAt      DateTime?            @map("last_used_at")
+  createdAt       DateTime             @default(now()) @map("created_at")
+  revokedAt       DateTime?            @map("revoked_at")
+  user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdByUser   User?                @relation("ApiKeyCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  oneTimeTokens   ApiKeyOneTimeToken[]
 
   @@index([userId])
+  @@index([createdByUserId])
   @@map("api_keys")
+}
+
+model ApiKeyOneTimeToken {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  apiKeyId        String   @map("api_key_id")
+  tokenHash       String   @unique @map("token_hash")
+  expiresAt       DateTime @map("expires_at")
+  usedAt          DateTime? @map("used_at")
+  createdByUserId String?  @map("created_by_user_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+  apiKey          ApiKey   @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+  createdByUser   User?    @relation("ApiKeyOneTimeTokenCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([apiKeyId])
+  @@map("api_key_one_time_tokens")
 }
 
 model ImportRecord {
@@ -367,15 +638,118 @@ model RawEvent {
 model AuditLog {
   id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   workspaceId String    @map("workspace_id")
+  projectId   String?   @map("project_id")
   actorUserId String    @map("actor_user_id")
+  correlationId String? @map("correlation_id")
   action      String
   target      Json
   createdAt   DateTime  @default(now()) @map("created_at")
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project     Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  deliveries  AuditDeliveryQueue[]
 
   @@index([workspaceId, createdAt(sort: Desc)])
+  @@index([workspaceId, correlationId])
+  @@index([projectId, createdAt(sort: Desc)])
   @@index([action, createdAt(sort: Desc)])
   @@map("audit_logs")
+}
+
+model AuditLogArchive {
+  id            String    @id @db.Uuid
+  workspaceId   String    @map("workspace_id")
+  projectId     String?   @map("project_id")
+  actorUserId   String    @map("actor_user_id")
+  correlationId String?   @map("correlation_id")
+  action        String
+  target        Json
+  createdAt     DateTime  @map("created_at")
+  archivedAt    DateTime  @default(now()) @map("archived_at")
+
+  @@index([workspaceId, createdAt(sort: Desc)])
+  @@index([workspaceId, correlationId])
+  @@index([projectId, createdAt(sort: Desc)])
+  @@index([action, createdAt(sort: Desc)])
+  @@map("audit_logs_archive")
+}
+
+model AuditSink {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId         String    @map("workspace_id")
+  type                AuditSinkType
+  name                String
+  enabled             Boolean   @default(true)
+  endpointUrl         String    @map("endpoint_url")
+  secret              String
+  eventFilter         Json      @default(dbgenerated("'{\"include_prefixes\":[],\"exclude_actions\":[]}'::jsonb")) @map("event_filter")
+  retryPolicy         Json      @default(dbgenerated("'{\"max_attempts\":5,\"backoff_sec\":[1,5,30,120,600]}'::jsonb")) @map("retry_policy")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+  workspace           Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  deliveries          AuditDeliveryQueue[]
+  asSecurityStreamFor WorkspaceSettings[] @relation("WorkspaceSecurityStreamSink")
+
+  @@index([workspaceId, enabled, updatedAt(sort: Desc)])
+  @@map("audit_sinks")
+}
+
+model AuditDeliveryQueue {
+  id            String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sinkId        String             @map("sink_id") @db.Uuid
+  auditLogId    String             @map("audit_log_id") @db.Uuid
+  workspaceId   String             @map("workspace_id")
+  status        AuditDeliveryStatus @default(queued)
+  attemptCount  Int                @default(0) @map("attempt_count")
+  nextAttemptAt DateTime           @default(now()) @map("next_attempt_at") @db.Timestamptz(6)
+  lastError     String?            @map("last_error")
+  createdAt     DateTime           @default(now()) @map("created_at")
+  updatedAt     DateTime           @updatedAt @map("updated_at")
+  sink          AuditSink          @relation(fields: [sinkId], references: [id], onDelete: Cascade)
+  auditLog      AuditLog           @relation(fields: [auditLogId], references: [id], onDelete: Cascade)
+  workspace     Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([sinkId, auditLogId])
+  @@index([workspaceId, status, nextAttemptAt])
+  @@index([sinkId, status, nextAttemptAt])
+  @@index([auditLogId])
+  @@map("audit_delivery_queue")
+}
+
+model DetectionRule {
+  id          String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId String           @map("workspace_id")
+  name        String
+  enabled     Boolean          @default(true)
+  severity    SecuritySeverity @default(medium)
+  condition   Json
+  notify      Json             @default(dbgenerated("'{\"via\":\"security_stream\"}'::jsonb"))
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+  workspace   Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  detections  Detection[]
+
+  @@index([workspaceId, enabled, updatedAt(sort: Desc)])
+  @@map("detection_rules")
+}
+
+model Detection {
+  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId   String          @map("workspace_id")
+  ruleId        String          @map("rule_id") @db.Uuid
+  triggeredAt   DateTime        @default(now()) @map("triggered_at") @db.Timestamptz(6)
+  actorUserId   String?         @map("actor_user_id")
+  correlationId String?         @map("correlation_id")
+  evidence      Json?
+  status        DetectionStatus @default(open)
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+  workspace     Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  rule          DetectionRule   @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, status, triggeredAt(sort: Desc)])
+  @@index([ruleId, status, triggeredAt(sort: Desc)])
+  @@index([workspaceId, correlationId])
+  @@map("detections")
 }
 
 model WorkspaceIntegration {
@@ -391,4 +765,239 @@ model WorkspaceIntegration {
   @@unique([workspaceId, provider])
   @@index([workspaceId, provider, isEnabled])
   @@map("workspace_integrations")
+}
+
+model OutboundMessagePolicy {
+  id               String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId      String                  @map("workspace_id")
+  integrationType  OutboundIntegrationType @map("integration_type")
+  enabled          Boolean                 @default(true)
+  localeDefault    String                  @default("en") @map("locale_default")
+  supportedLocales Json                    @default(dbgenerated("'[\"en\", \"ko\", \"ja\", \"es\", \"zh\"]'::jsonb")) @map("supported_locales")
+  mode             OutboundMessageMode     @default(template)
+  style            OutboundMessageStyle    @default(short)
+  templateOverrides Json                   @default("{}") @map("template_overrides")
+  llmPromptSystem  String?                 @map("llm_prompt_system")
+  llmPromptUser    String?                 @map("llm_prompt_user")
+  createdAt        DateTime                @default(now()) @map("created_at")
+  updatedAt        DateTime                @updatedAt @map("updated_at")
+  workspace        Workspace               @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, integrationType])
+  @@index([workspaceId, integrationType, enabled])
+  @@map("outbound_message_policies")
+}
+
+model InvitationToken {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId     String        @map("workspace_id")
+  email           String
+  role            WorkspaceRole @default(MEMBER)
+  projectRoles    Json?         @map("project_roles")
+  tokenHash       String        @unique @map("token_hash")
+  expiresAt       DateTime      @map("expires_at") @db.Timestamptz(6)
+  usedAt          DateTime?     @map("used_at") @db.Timestamptz(6)
+  createdByUserId String?       @map("created_by_user_id")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  workspace       Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdByUser   User?         @relation("InvitationCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId])
+  @@index([email])
+  @@map("invitation_tokens")
+}
+
+model OidcProvider {
+  id                String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId       String                @map("workspace_id")
+  name              String
+  issuerUrl         String                @map("issuer_url")
+  clientId          String                @map("client_id")
+  clientSecret      String                @map("client_secret")
+  discoveryEnabled  Boolean               @default(true) @map("discovery_enabled")
+  scopes            String                @default("openid profile email")
+  claimGroupsName   String                @default("groups") @map("claim_groups_name")
+  claimGroupsFormat OidcClaimGroupsFormat @default(id) @map("claim_groups_format")
+  enabled           Boolean               @default(true)
+  createdAt         DateTime              @default(now()) @map("created_at")
+  updatedAt         DateTime              @updatedAt @map("updated_at")
+  workspace         Workspace             @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  identities        UserIdentity[]
+  groupMappings     OidcGroupMapping[]
+
+  @@index([workspaceId, enabled, updatedAt(sort: Desc)])
+  @@map("oidc_providers")
+}
+
+model UserIdentity {
+  id         String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String       @map("user_id")
+  providerId String       @map("provider_id") @db.Uuid
+  workspaceId String      @map("workspace_id")
+  issuer     String
+  subject    String
+  email      String?
+  createdAt  DateTime     @default(now()) @map("created_at")
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider   OidcProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  workspace  Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, issuer, subject])
+  @@index([userId])
+  @@index([workspaceId])
+  @@map("user_identities")
+}
+
+model GithubInstallation {
+  id                  String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId         String                    @unique @map("workspace_id")
+  installationId      BigInt                    @unique @map("installation_id")
+  accountType         GithubAccountType         @map("account_type")
+  accountLogin        String                    @map("account_login")
+  repositorySelection GithubRepositorySelection @default(unknown) @map("repository_selection")
+  permissions         Json                      @default("{}")
+  createdAt           DateTime                  @default(now()) @map("created_at")
+  updatedAt           DateTime                  @updatedAt @map("updated_at")
+  workspace           Workspace                 @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@map("github_installations")
+}
+
+model GithubRepoLink {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId   String    @map("workspace_id")
+  linkedProjectId String? @map("linked_project_id")
+  githubRepoId  BigInt    @map("github_repo_id")
+  fullName      String    @map("full_name")
+  private       Boolean
+  defaultBranch String?   @map("default_branch")
+  isActive      Boolean   @default(true) @map("is_active")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  linkedProject Project?  @relation(fields: [linkedProjectId], references: [id], onDelete: SetNull)
+
+  @@unique([workspaceId, githubRepoId])
+  @@index([workspaceId, isActive, updatedAt(sort: Desc)])
+  @@index([workspaceId, linkedProjectId])
+  @@map("github_repo_links")
+}
+
+model GithubUserLink {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId  String    @map("workspace_id")
+  userId       String    @map("user_id")
+  githubUserId BigInt?   @map("github_user_id")
+  githubLogin  String    @map("github_login")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  @@unique([workspaceId, githubLogin])
+  @@index([workspaceId, githubUserId])
+  @@map("github_user_links")
+}
+
+model GithubPermissionCache {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId  String    @map("workspace_id")
+  githubRepoId BigInt    @map("github_repo_id")
+  githubUserId BigInt    @map("github_user_id")
+  permission   String
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, githubRepoId, githubUserId])
+  @@index([workspaceId, githubRepoId, updatedAt(sort: Desc)])
+  @@map("github_permission_cache")
+}
+
+model GithubRepoTeamsCache {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId  String    @map("workspace_id")
+  githubRepoId BigInt    @map("github_repo_id")
+  teamsJson    Json      @map("teams_json")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, githubRepoId])
+  @@index([workspaceId, updatedAt(sort: Desc)])
+  @@map("github_repo_teams_cache")
+}
+
+model GithubTeamMembersCache {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId  String    @map("workspace_id")
+  githubTeamId BigInt    @map("github_team_id")
+  membersJson  Json      @map("members_json")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, githubTeamId])
+  @@index([workspaceId, updatedAt(sort: Desc)])
+  @@map("github_team_members_cache")
+}
+
+model GithubWebhookEvent {
+  id             String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId    String?                  @map("workspace_id")
+  installationId BigInt                   @map("installation_id")
+  eventType      String                   @map("event_type")
+  deliveryId     String                   @unique @map("delivery_id")
+  payload        Json
+  status         GithubWebhookEventStatus @default(queued)
+  affectedReposCount Int                  @default(0) @map("affected_repos_count")
+  error          String?
+  createdAt      DateTime                 @default(now()) @map("created_at")
+  updatedAt      DateTime                 @updatedAt @map("updated_at")
+  workspace      Workspace?               @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, status, updatedAt(sort: Desc)])
+  @@index([installationId, status, updatedAt(sort: Desc)])
+  @@map("github_webhook_events")
+}
+
+model GithubTeamMapping {
+  id                     String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId            String                      @map("workspace_id")
+  providerInstallationId BigInt?                     @map("provider_installation_id")
+  githubTeamId           BigInt                      @map("github_team_id")
+  githubTeamSlug         String                      @map("github_team_slug")
+  githubOrgLogin         String                      @map("github_org_login")
+  targetType             GithubTeamMappingTargetType @map("target_type")
+  targetKey              String                      @map("target_key")
+  role                   GithubTeamMappingRole
+  enabled                Boolean                     @default(true)
+  priority               Int                         @default(100)
+  createdAt              DateTime                    @default(now()) @map("created_at")
+  updatedAt              DateTime                    @updatedAt @map("updated_at")
+  workspace              Workspace                   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, githubTeamId, targetType, targetKey])
+  @@index([workspaceId, enabled, priority, updatedAt(sort: Desc)])
+  @@map("github_team_mappings")
+}
+
+model OidcGroupMapping {
+  id               String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId      String                     @map("workspace_id")
+  providerId       String                     @map("provider_id") @db.Uuid
+  claimName        String                     @default("groups") @map("claim_name")
+  groupId          String                     @map("group_id")
+  groupDisplayName String                     @map("group_display_name")
+  targetType       OidcGroupMappingTargetType @map("target_type")
+  targetKey        String                     @map("target_key")
+  role             OidcGroupMappingRole
+  priority         Int                        @default(100)
+  enabled          Boolean                    @default(true)
+  createdAt        DateTime                   @default(now()) @map("created_at")
+  updatedAt        DateTime                   @updatedAt @map("updated_at")
+  workspace        Workspace                  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  provider         OidcProvider               @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, providerId, claimName, groupId, targetType, targetKey, role])
+  @@index([workspaceId, providerId, enabled, priority])
+  @@map("oidc_group_mappings")
 }

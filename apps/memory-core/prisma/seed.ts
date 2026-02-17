@@ -1,5 +1,6 @@
 import { PrismaClient, ProjectRole, WorkspaceRole } from '@prisma/client';
 import * as crypto from 'crypto';
+import { hashApiKey } from '../src/security/api-key.js';
 
 const prisma = new PrismaClient();
 
@@ -13,6 +14,8 @@ const ADMIN_KEY =
   process.env.MEMORY_CORE_SEED_ADMIN_KEY ||
   process.env.MEMORY_CORE_API_KEY ||
   'dev-admin-key-change-me';
+const API_KEY_HASH_SECRET =
+  process.env.MEMORY_CORE_API_KEY_HASH_SECRET || 'claustrum-dev-api-key-hash-secret-change-me';
 
 async function main(): Promise<void> {
   const workspace = await prisma.workspace.upsert({
@@ -26,10 +29,16 @@ async function main(): Promise<void> {
 
   const adminUser = await prisma.user.upsert({
     where: { email: ADMIN_EMAIL },
-    update: { name: ADMIN_NAME },
+    update: {
+      name: ADMIN_NAME,
+      mustChangePassword: false,
+      emailVerified: true,
+    },
     create: {
       email: ADMIN_EMAIL,
       name: ADMIN_NAME,
+      mustChangePassword: false,
+      emailVerified: true,
     },
   });
 
@@ -70,25 +79,31 @@ async function main(): Promise<void> {
         userId: adminUser.id,
       },
     },
-    update: { role: ProjectRole.ADMIN },
+    update: { role: ProjectRole.OWNER },
     create: {
       projectId: project.id,
       userId: adminUser.id,
-      role: ProjectRole.ADMIN,
+      role: ProjectRole.OWNER,
     },
   });
 
+  const adminKeyHash = hashApiKey(ADMIN_KEY, API_KEY_HASH_SECRET);
   await prisma.apiKey.upsert({
-    where: { key: ADMIN_KEY },
+    where: { keyHash: adminKeyHash },
     update: {
       userId: adminUser.id,
       label: 'seed-admin',
       revokedAt: null,
+      keyHash: adminKeyHash,
+      key: null,
+      createdByUserId: adminUser.id,
     },
     create: {
-      key: ADMIN_KEY,
+      key: null,
+      keyHash: adminKeyHash,
       label: 'seed-admin',
       userId: adminUser.id,
+      createdByUserId: adminUser.id,
     },
   });
 
@@ -100,9 +115,101 @@ async function main(): Promise<void> {
     },
   });
 
+  await upsertDetectionRuleByName({
+    workspaceId: workspace.id,
+    name: 'Raw search burst',
+    severity: 'high',
+    condition: {
+      type: 'threshold',
+      action_key: 'raw.search',
+      window_sec: 300,
+      count_gte: 20,
+      group_by: 'actor_user_id',
+    },
+    notify: {
+      via: 'security_stream',
+    },
+  });
+
+  await upsertDetectionRuleByName({
+    workspaceId: workspace.id,
+    name: 'Project permission churn',
+    severity: 'medium',
+    condition: {
+      type: 'threshold',
+      action_key: 'access.project_member.role_changed',
+      window_sec: 600,
+      count_gte: 30,
+      group_by: 'actor_user_id',
+    },
+    notify: {
+      via: 'security_stream',
+    },
+  });
+
+  await upsertDetectionRuleByName({
+    workspaceId: workspace.id,
+    name: 'API key reset burst',
+    severity: 'high',
+    condition: {
+      type: 'threshold',
+      action_key: 'api_key.reset',
+      window_sec: 600,
+      count_gte: 5,
+      group_by: 'actor_user_id',
+    },
+    notify: {
+      via: 'security_stream',
+    },
+  });
+
   console.error('[memory-core:seed] seeded workspace, settings, admin user, default project, and admin API key');
   console.error(`[memory-core:seed] admin email: ${ADMIN_EMAIL}`);
   console.error(`[memory-core:seed] admin api key: ${maskKey(ADMIN_KEY)}`);
+}
+
+async function upsertDetectionRuleByName(args: {
+  workspaceId: string;
+  name: string;
+  severity: 'low' | 'medium' | 'high';
+  condition: Record<string, unknown>;
+  notify?: Record<string, unknown>;
+}): Promise<void> {
+  const existing = await prisma.detectionRule.findFirst({
+    where: {
+      workspaceId: args.workspaceId,
+      name: args.name,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (existing) {
+    await prisma.detectionRule.update({
+      where: {
+        id: existing.id,
+      },
+      data: {
+        enabled: true,
+        severity: args.severity,
+        condition: args.condition as any,
+        notify: (args.notify || { via: 'security_stream' }) as any,
+      },
+    });
+    return;
+  }
+
+  await prisma.detectionRule.create({
+    data: {
+      workspaceId: args.workspaceId,
+      name: args.name,
+      enabled: true,
+      severity: args.severity,
+      condition: args.condition as any,
+      notify: (args.notify || { via: 'security_stream' }) as any,
+    },
+  });
 }
 
 function maskKey(value: string): string {

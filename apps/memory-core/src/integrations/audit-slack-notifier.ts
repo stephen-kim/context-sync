@@ -8,6 +8,8 @@ type AuditEvent = {
   action: string;
   target: Record<string, unknown>;
   createdAt: Date;
+  outboundText?: string;
+  outboundLocale?: string;
 };
 
 type SlackSeverity = 'low' | 'medium' | 'high' | 'critical';
@@ -112,19 +114,25 @@ export class SlackAuditNotifier {
       linesDetailed.push(`*Target*: \`\`\`${this.limitJson(target, 1200)}\`\`\``);
     }
 
-    const compactText = [
-      `\`${event.action}\``,
-      `sev=${severity}`,
-      `ws=${workspace}`,
-      `by=${actor}`,
-      `why=${reason && reason.trim() ? this.oneLine(reason) : 'auto'}`,
-    ].join(' | ');
+    const compactText = event.outboundText
+      ? event.outboundText
+      : [
+          `\`${event.action}\``,
+          `sev=${severity}`,
+          `ws=${workspace}`,
+          `by=${actor}`,
+          `why=${reason && reason.trim() ? this.oneLine(reason) : 'auto'}`,
+        ].join(' | ');
 
-    const detailedText = linesDetailed.join('\n');
+    const detailedText = event.outboundText
+      ? resolved.includeTargetJson !== false
+        ? `${event.outboundText}\n\`\`\`${this.limitJson(target, 1200)}\`\`\``
+        : event.outboundText
+      : linesDetailed.join('\n');
     const messageText =
       resolved.format === 'compact'
         ? compactText
-        : `audit ${event.action} by ${actor} in ${workspace}`;
+        : event.outboundText || `audit ${event.action} by ${actor} in ${workspace}`;
     const blocks = [
       {
         type: 'section',

@@ -3,6 +3,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { execSync } from 'child_process';
+import { formatRelativeTime, suggestCommitMessageFromFiles } from './git-text-utils';
 
 export interface GitStatus {
   branch: string;
@@ -194,16 +195,7 @@ export class GitIntegration {
         return 'No changes to commit';
       }
 
-      // Analyze changed files to determine type and scope
-      const analysis = this.analyzeChanges(changedFiles);
-
-      if (convention === 'conventional') {
-        return this.generateConventionalCommit(analysis, changedFiles);
-      } else if (convention === 'simple') {
-        return this.generateSimpleCommit(analysis, changedFiles);
-      } else {
-        return this.generateDescriptiveCommit(analysis, changedFiles);
-      }
+      return suggestCommitMessageFromFiles(changedFiles, convention, (file) => this.isTracked(file));
     } catch (error) {
       console.error('Error suggesting commit message:', error);
       return null;
@@ -405,7 +397,7 @@ export class GitIntegration {
         .map(([author, lines]) => {
           const percentage = Math.round((lines / totalLines) * 100);
           const lastEditISO = authorDates.get(author) || '';
-          const lastEdit = lastEditISO ? this.formatRelativeTime(lastEditISO) : 'unknown';
+          const lastEdit = lastEditISO ? formatRelativeTime(lastEditISO) : 'unknown';
           
           return { author, lines, percentage, lastEdit };
         })
@@ -471,159 +463,11 @@ export class GitIntegration {
     }
   }
 
-  /**
-   * Format relative time from ISO string
-   */
-  private formatRelativeTime(isoString: string): string {
-    const date = new Date(isoString);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    
-    const seconds = Math.floor(diff / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
-    const weeks = Math.floor(days / 7);
-    const months = Math.floor(days / 30);
-    
-    if (months > 0) return `${months} month${months > 1 ? 's' : ''} ago`;
-    if (weeks > 0) return `${weeks} week${weeks > 1 ? 's' : ''} ago`;
-    if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
-    if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-    if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
-    return 'just now';
-  }
-
-  // ========== PRIVATE HELPER METHODS ==========
-
   private exec(command: string): string {
     return execSync(command, {
       cwd: this.workspacePath,
       encoding: 'utf8',
       stdio: ['pipe', 'pipe', 'pipe']
     });
-  }
-
-  private analyzeChanges(files: string[]): {
-    type: string;
-    scope: string;
-    hasTests: boolean;
-    hasDocs: boolean;
-    isBreaking: boolean;
-  } {
-    const analysis = {
-      type: 'chore',
-      scope: '',
-      hasTests: false,
-      hasDocs: false,
-      isBreaking: false
-    };
-
-    // Determine type based on file patterns
-    const hasNewFiles = files.some(f => !this.isTracked(f));
-    const hasComponents = files.some(f => f.includes('component') || f.match(/\.(tsx|jsx)$/));
-    const hasApi = files.some(f => f.includes('api') || f.includes('route'));
-    const hasModels = files.some(f => f.includes('model') || f.includes('schema'));
-    const hasTests = files.some(f => f.includes('.test.') || f.includes('.spec.'));
-    const hasDocs = files.some(f => f.match(/\.(md|txt)$/i));
-    const hasConfig = files.some(f => f.match(/\.(json|yaml|yml|toml|config)$/));
-
-    analysis.hasTests = hasTests;
-    analysis.hasDocs = hasDocs;
-
-    if (hasNewFiles && hasComponents) {
-      analysis.type = 'feat';
-      analysis.scope = 'components';
-    } else if (hasNewFiles && hasApi) {
-      analysis.type = 'feat';
-      analysis.scope = 'api';
-    } else if (hasComponents) {
-      analysis.type = 'fix';
-      analysis.scope = 'components';
-    } else if (hasApi) {
-      analysis.type = 'fix';
-      analysis.scope = 'api';
-    } else if (hasModels) {
-      analysis.type = 'feat';
-      analysis.scope = 'models';
-    } else if (hasTests) {
-      analysis.type = 'test';
-    } else if (hasDocs) {
-      analysis.type = 'docs';
-    } else if (hasConfig) {
-      analysis.type = 'chore';
-      analysis.scope = 'config';
-    }
-
-    return analysis;
-  }
-
-  private generateConventionalCommit(
-    analysis: { type: string; scope: string; hasTests: boolean; hasDocs: boolean },
-    files: string[]
-  ): string {
-    const scope = analysis.scope ? `(${analysis.scope})` : '';
-    const description = this.generateDescription(files);
-
-    let message = `${analysis.type}${scope}: ${description}\n\n`;
-
-    // Add details
-    const details: string[] = [];
-    
-    for (const file of files.slice(0, 5)) {
-      const action = this.isTracked(file) ? 'Update' : 'Add';
-      details.push(`- ${action} ${file}`);
-    }
-
-    if (files.length > 5) {
-      details.push(`- And ${files.length - 5} more files`);
-    }
-
-    message += details.join('\n');
-
-    // Add footers
-    if (analysis.hasTests) {
-      message += '\n\nTests: Added/updated';
-    }
-
-    return message;
-  }
-
-  private generateSimpleCommit(
-    analysis: { type: string },
-    files: string[]
-  ): string {
-    const description = this.generateDescription(files);
-    return `${analysis.type}: ${description}`;
-  }
-
-  private generateDescriptiveCommit(
-    analysis: { type: string; scope: string },
-    files: string[]
-  ): string {
-    const description = this.generateDescription(files);
-    const scope = analysis.scope ? ` in ${analysis.scope}` : '';
-    
-    return `${description}${scope}\n\nFiles changed:\n${files.slice(0, 10).map(f => `- ${f}`).join('\n')}`;
-  }
-
-  private generateDescription(files: string[]): string {
-    // Try to infer description from file patterns
-    if (files.length === 1) {
-      const file = path.basename(files[0], path.extname(files[0]));
-      return `update ${file}`;
-    }
-
-    const hasComponents = files.some(f => f.includes('component'));
-    const hasApi = files.some(f => f.includes('api'));
-    const hasModels = files.some(f => f.includes('model'));
-    const hasAuth = files.some(f => f.includes('auth'));
-
-    if (hasAuth) return 'update authentication';
-    if (hasComponents) return 'update components';
-    if (hasApi) return 'update API routes';
-    if (hasModels) return 'update data models';
-
-    return `update ${files.length} files`;
   }
 }

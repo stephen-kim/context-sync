@@ -1,0 +1,16 @@
+{
+  "raw.search": "「{q}」で raw ログを検索しました（{count} 件）。",
+  "raw.view": "raw メッセージ {message_id} を表示しました。",
+  "decision.draft.created": "ドラフト決定を作成しました: {summary}",
+  "git.commit": "{branch} ブランチで commit イベントを記録しました。",
+  "git.merge": "{branch} ブランチで merge イベントを記録しました。",
+  "git.checkout": "{branch} ブランチで checkout イベントを記録しました。",
+  "ci.success": "{repository} の {branch} で CI が成功しました。",
+  "ci.failure": "{repository} の {branch} で CI が失敗しました。",
+  "integration.autowrite": "{provider} の自動書き込みは {status} です。",
+  "workspace_settings.update": "ワークスペース設定が更新されました。",
+  "project_mapping.update": "プロジェクトマッピングが更新されました。",
+  "integration.update": "連携設定が更新されました。",
+  "outbound.settings.update": "アウトバウンドロケール設定が更新されました。",
+  "outbound.policy.update": "{integration_type} のアウトバウンドポリシーが更新されました。"
+}

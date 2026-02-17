@@ -47,10 +47,33 @@ export type WorkspaceSettingsResponse = {
   checkout_daily_limit: number;
   enable_monorepo_resolution: boolean;
   monorepo_detection_level: number;
+  monorepo_context_mode: 'shared_repo' | 'split_on_demand' | 'split_auto';
+  monorepo_subpath_metadata_enabled: boolean;
+  monorepo_subpath_boost_enabled: boolean;
+  monorepo_subpath_boost_weight: number;
   monorepo_workspace_globs: string[];
   monorepo_exclude_globs: string[];
   monorepo_root_markers: string[];
   monorepo_max_depth: number;
+};
+
+export type ContextBundleResponse = {
+  project: {
+    key: string;
+    name: string;
+  };
+  snapshot: {
+    summary: string;
+    top_decisions: Array<Record<string, unknown>>;
+    top_constraints: Array<Record<string, unknown>>;
+    active_work: Array<Record<string, unknown>>;
+    recent_activity: Array<Record<string, unknown>>;
+  };
+  retrieval: {
+    query?: string;
+    results: Array<Record<string, unknown>>;
+  };
+  debug?: Record<string, unknown>;
 };
 
 export type RawSearchMatch = {

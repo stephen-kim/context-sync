@@ -1,0 +1,16 @@
+{
+  "raw.search": "원문 로그에서 \"{q}\"를 검색했습니다. (결과 {count}개)",
+  "raw.view": "원문 메시지 {message_id}를 조회했습니다.",
+  "decision.draft.created": "결정 초안이 생성되었습니다: {summary}",
+  "git.commit": "{branch} 브랜치의 커밋 이벤트를 저장했습니다.",
+  "git.merge": "{branch} 브랜치의 머지 이벤트를 저장했습니다.",
+  "git.checkout": "{branch} 브랜치의 체크아웃 이벤트를 저장했습니다.",
+  "ci.success": "{repository} / {branch} CI가 성공했습니다.",
+  "ci.failure": "{repository} / {branch} CI가 실패했습니다.",
+  "integration.autowrite": "{provider} 자동 쓰기 작업이 {status} 상태입니다.",
+  "workspace_settings.update": "워크스페이스 설정이 변경되었습니다.",
+  "project_mapping.update": "프로젝트 매핑이 변경되었습니다.",
+  "integration.update": "통합 설정이 변경되었습니다.",
+  "outbound.settings.update": "아웃바운드 로케일 설정이 변경되었습니다.",
+  "outbound.policy.update": "{integration_type} 아웃바운드 정책이 변경되었습니다."
+}

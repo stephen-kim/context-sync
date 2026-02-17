@@ -19,12 +19,24 @@ Core principles:
 ## Read Next
 
 - [Installation](Installation)
+- [Dependency Management](dependency-management)
 - [Operations](Operations)
 - [Security and MCP I/O](Security-and-MCP-IO)
+- [OIDC SSO](OIDC-SSO)
+- [Group Mapping](Group-Mapping)
 - [Notion Integration](Notion-Integration)
 - [Atlassian Integration](Atlassian-Integration)
 - [Linear Integration](Linear-Integration)
+- [GitHub Integration](GitHub-Integration)
+- [GitHub Auto Projects](github-auto-projects)
+- [GitHub Permission Sync](github-permission-sync)
+- [GitHub Permission Calculation](github-permission-calculation)
+- [GitHub Webhooks](github-webhooks)
+- [GitHub Partial Recompute](github-partial-recompute)
+- [GitHub Team Mapping](github-team-mapping)
+- [Monorepo Split Policy](monorepo-split-policy)
 - [Slack Audit Integration](Slack-Audit)
+- [Outbound Locales and Prompt Tuning](Outbound-Locales)
 - [Release Notes](Release-Notes)
 - [Installation (Korean)](Installation.ko)
 
@@ -37,7 +49,25 @@ Core principles:
 - `GET/POST /v1/projects`
 - `GET/POST /v1/memories`
 - `GET/PUT /v1/workspace-settings`
+- `GET /v1/auth/oidc/:workspace_key/start`
+- `GET /v1/auth/oidc/:workspace_key/callback`
+- `GET/PUT /v1/workspaces/:key/sso-settings`
+- `GET/POST/PATCH /v1/oidc/providers`
+- `GET/POST/PATCH/DELETE /v1/oidc/group-mappings`
 - `GET/PUT /v1/integrations`
+- `GET /v1/workspaces/:key/github/install-url`
+- `GET /v1/auth/github/callback`
+- `POST /v1/workspaces/:key/github/sync-repos`
+- `GET /v1/workspaces/:key/github/repos`
+- `GET /v1/workspaces/:key/github/installation`
+- `GET/POST/DELETE /v1/workspaces/:key/github/user-links`
+- `POST /v1/workspaces/:key/github/sync-permissions`
+- `GET /v1/workspaces/:key/github/permission-status`
+- `GET /v1/workspaces/:key/github/permission-preview`
+- `GET /v1/workspaces/:key/github/cache-status`
+- `POST /v1/webhooks/github`
+- `GET /v1/workspaces/:key/github/webhook-events`
+- `GET/POST/PATCH/DELETE /v1/workspaces/:key/github/team-mappings`
 - `GET/POST/PATCH /v1/project-mappings`
 - `GET/POST /v1/users`
 - `GET/POST /v1/project-members`
@@ -53,6 +83,9 @@ Core principles:
 - `GET /v1/raw-events`
 - `POST /v1/git-events`
 - `POST /v1/ci-events`
+- `GET/PUT /v1/workspaces/:key/outbound-settings`
+- `GET/PUT /v1/outbound-policies/:integration_type`
+- `POST /v1/outbound/render`
 - `GET /v1/jira/search`
 - `GET /v1/jira/read`
 - `GET /v1/confluence/search`

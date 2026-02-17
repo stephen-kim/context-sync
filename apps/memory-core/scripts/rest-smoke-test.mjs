@@ -5,11 +5,13 @@ import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createApiClient, waitForHealthcheck } from './rest-smoke-test-utils.mjs';
 
 const HOST = process.env.MEMORY_CORE_HOST || '127.0.0.1';
 const PORT = Number(process.env.MEMORY_CORE_PORT || 18080);
 const BASE_URL = `http://${HOST}:${PORT}`;
 const API_KEY = process.env.MEMORY_CORE_API_KEY || 'dev-admin-key-change-me';
+const { callApi, callApiRaw, callApiMultipart } = createApiClient(BASE_URL, API_KEY);
 
 function resolveAppRoot() {
   const __filename = fileURLToPath(import.meta.url);
@@ -43,7 +45,7 @@ async function main() {
   child.stderr.on('data', () => {});
 
   try {
-    await waitForHealthcheck();
+    await waitForHealthcheck(BASE_URL);
     await runFlow();
     console.error('[memory-core:test] REST smoke test passed');
   } finally {
@@ -75,6 +77,59 @@ async function runFlow() {
       reason: 'initial resolver policy setup',
     }),
   });
+
+  const outboundDefaults = await callApi(
+    `/v1/workspaces/${encodeURIComponent(workspaceKey)}/outbound-settings`
+  );
+  assert.equal(outboundDefaults.default_outbound_locale, 'en');
+
+  const outboundSettings = await callApi(
+    `/v1/workspaces/${encodeURIComponent(workspaceKey)}/outbound-settings`,
+    {
+      method: 'PUT',
+      body: JSON.stringify({
+        default_outbound_locale: 'ko',
+        supported_outbound_locales: ['en', 'ko'],
+        reason: 'set outbound locale defaults',
+      }),
+    }
+  );
+  assert.equal(outboundSettings.default_outbound_locale, 'ko');
+  assert.deepEqual(outboundSettings.supported_outbound_locales, ['en', 'ko']);
+
+  const outboundPolicy = await callApi('/v1/outbound-policies/slack', {
+    method: 'PUT',
+    body: JSON.stringify({
+      workspace_key: workspaceKey,
+      enabled: true,
+      locale_default: 'ko',
+      supported_locales: ['en', 'ko'],
+      mode: 'template',
+      style: 'short',
+      template_overrides: {
+        'raw.search': {
+          en: 'Override "{q}" ({count})',
+          ko: '검색 "{q}" ({count})',
+        },
+      },
+      reason: 'set outbound policy',
+    }),
+  });
+  assert.equal(outboundPolicy.integration_type, 'slack');
+  assert.equal(outboundPolicy.locale_default, 'ko');
+
+  const outboundRendered = await callApi('/v1/outbound/render', {
+    method: 'POST',
+    body: JSON.stringify({
+      workspace_key: workspaceKey,
+      integration_type: 'slack',
+      action_key: 'raw.search',
+      params: { q: 'smoke', count: 3 },
+      locale: 'zh',
+    }),
+  });
+  assert.equal(outboundRendered.locale_used, 'ko');
+  assert.equal(outboundRendered.text, '검색 "smoke" (3)');
 
   const workspaceAudit = await callApi(
     `/v1/audit-logs?${new URLSearchParams({
@@ -528,78 +583,6 @@ async function runFlow() {
   const actions = (audits.logs || []).map((entry) => entry.action);
   assert.ok(actions.includes('raw.search'), 'Expected raw.search audit log');
   assert.ok(actions.includes('raw.view'), 'Expected raw.view audit log');
-}
-
-async function waitForHealthcheck() {
-  const start = Date.now();
-  const timeoutMs = 20000;
-
-  while (Date.now() - start < timeoutMs) {
-    try {
-      const response = await fetch(`${BASE_URL}/healthz`);
-      if (response.ok) {
-        return;
-      }
-    } catch {
-      // retry
-    }
-    await sleep(300);
-  }
-
-  throw new Error(`memory-core healthcheck timed out: ${BASE_URL}/healthz`);
-}
-
-async function callApi(pathname, init = {}) {
-  const result = await callApiRaw(pathname, init);
-  if (result.status < 200 || result.status >= 300) {
-    throw new Error(result.body.error || `${result.status} ${result.statusText}`);
-  }
-  return result.body;
-}
-
-async function callApiRaw(pathname, init = {}) {
-  const response = await fetch(`${BASE_URL}${pathname}`, {
-    ...init,
-    headers: {
-      'content-type': 'application/json',
-      authorization: `Bearer ${API_KEY}`,
-      ...(init.headers || {}),
-    },
-  });
-
-  const body = await response.json().catch(() => ({}));
-  return {
-    status: response.status,
-    statusText: response.statusText,
-    body,
-  };
-}
-
-async function callApiMultipart(pathname, args) {
-  const form = new FormData();
-  form.set('workspace_key', args.workspace_key);
-  form.set('source', args.source);
-  if (args.project_key) {
-    form.set('project_key', args.project_key);
-  }
-  form.set('file', new Blob([args.fileContent], { type: 'application/jsonl' }), args.fileName);
-
-  const response = await fetch(`${BASE_URL}${pathname}`, {
-    method: 'POST',
-    body: form,
-    headers: {
-      authorization: `Bearer ${API_KEY}`,
-    },
-  });
-  const body = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(body.error || `${response.status} ${response.statusText}`);
-  }
-  return body;
-}
-
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 main().catch((error) => {

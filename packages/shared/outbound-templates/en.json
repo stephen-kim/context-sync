@@ -1,0 +1,17 @@
+{
+  "raw.search": "Searched raw logs for \"{q}\" ({count} results).",
+  "raw.view": "Viewed raw message {message_id}.",
+  "decision.draft.created": "Draft decision created: {summary}",
+  "git.commit": "Captured commit event on {branch}.",
+  "git.merge": "Captured merge event on {branch}.",
+  "git.checkout": "Captured checkout event on {branch}.",
+  "ci.success": "CI succeeded for {repository} on {branch}.",
+  "ci.failure": "CI failed for {repository} on {branch}.",
+  "integration.autowrite": "Integration auto-write {status} for {provider}.",
+  "workspace_settings.update": "Workspace settings were updated.",
+  "project_mapping.update": "Project mapping was updated.",
+  "integration.update": "Integration settings were updated.",
+  "outbound.render.preview": "Outbound preview generated.",
+  "outbound.settings.update": "Outbound workspace locale settings were updated.",
+  "outbound.policy.update": "Outbound messaging policy was updated for {integration_type}."
+}

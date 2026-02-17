@@ -14,6 +14,20 @@ export type MemoryCoreConfig = {
   host: string;
   databaseUrl: string;
   logLevel: LogLevel;
+  allowBootstrapAdmin: boolean;
+  authSessionSecret: string;
+  authSessionTtlSeconds: number;
+  apiKeyHashSecret: string;
+  oneTimeTokenSecret: string;
+  oneTimeTokenTtlSeconds: number;
+  githubStateSecret: string;
+  publicBaseUrl?: string;
+  inviteBaseUrl?: string;
+  githubAppId?: string;
+  githubAppPrivateKey?: string;
+  githubAppWebhookSecret?: string;
+  githubAppName?: string;
+  githubAppUrl?: string;
   apiKeys: string[];
   auditSlackWebhookUrl?: string;
   auditSlackActionPrefixes: string[];
@@ -70,6 +84,32 @@ export function loadConfig(): MemoryCoreConfig {
     host: process.env.MEMORY_CORE_HOST || '0.0.0.0',
     databaseUrl,
     logLevel: normalizeLogLevel(process.env.MEMORY_CORE_LOG_LEVEL),
+    allowBootstrapAdmin: parseBoolean(process.env.MEMORY_CORE_ALLOW_BOOTSTRAP_ADMIN || 'true'),
+    authSessionSecret:
+      (process.env.MEMORY_CORE_AUTH_SESSION_SECRET || '').trim() ||
+      'claustrum-dev-session-secret-change-me',
+    authSessionTtlSeconds: parseSessionTtlSeconds(process.env.MEMORY_CORE_AUTH_SESSION_TTL_SECONDS),
+    apiKeyHashSecret:
+      (process.env.MEMORY_CORE_API_KEY_HASH_SECRET || '').trim() ||
+      'claustrum-dev-api-key-hash-secret-change-me',
+    oneTimeTokenSecret:
+      (process.env.MEMORY_CORE_ONE_TIME_TOKEN_SECRET || '').trim() ||
+      (process.env.MEMORY_CORE_AUTH_SESSION_SECRET || '').trim() ||
+      'claustrum-dev-one-time-token-secret-change-me',
+    oneTimeTokenTtlSeconds: parseOneTimeTokenTtlSeconds(
+      process.env.MEMORY_CORE_ONE_TIME_TOKEN_TTL_SECONDS
+    ),
+    githubStateSecret:
+      (process.env.MEMORY_CORE_GITHUB_STATE_SECRET || '').trim() ||
+      (process.env.MEMORY_CORE_AUTH_SESSION_SECRET || '').trim() ||
+      'claustrum-dev-github-state-secret-change-me',
+    publicBaseUrl: (process.env.MEMORY_CORE_PUBLIC_BASE_URL || '').trim() || undefined,
+    inviteBaseUrl: (process.env.MEMORY_CORE_INVITE_BASE_URL || '').trim() || undefined,
+    githubAppId: (process.env.GITHUB_APP_ID || '').trim() || undefined,
+    githubAppPrivateKey: parseGithubAppPrivateKey(process.env.GITHUB_APP_PRIVATE_KEY),
+    githubAppWebhookSecret: (process.env.GITHUB_APP_WEBHOOK_SECRET || '').trim() || undefined,
+    githubAppName: (process.env.GITHUB_APP_NAME || '').trim() || undefined,
+    githubAppUrl: (process.env.GITHUB_APP_URL || '').trim() || undefined,
     apiKeys: rawKeys,
     auditSlackWebhookUrl:
       (process.env.MEMORY_CORE_AUDIT_SLACK_WEBHOOK_URL || '').trim() || undefined,
@@ -138,6 +178,51 @@ function normalizeLogLevel(input?: string): LogLevel {
 function parseBoolean(input?: string): boolean {
   const value = (input || '').trim().toLowerCase();
   return value === '1' || value === 'true' || value === 'yes' || value === 'on';
+}
+
+function parseGithubAppPrivateKey(input?: string): string | undefined {
+  const raw = (input || '').trim();
+  if (!raw) {
+    return undefined;
+  }
+  const normalized = raw.replace(/\\n/g, '\n');
+  if (looksLikePem(normalized)) {
+    return normalized;
+  }
+
+  const compact = raw.replace(/\s+/g, '');
+  try {
+    const decoded = Buffer.from(compact, 'base64').toString('utf8').trim();
+    if (looksLikePem(decoded)) {
+      return decoded;
+    }
+  } catch {
+    // fall through
+  }
+
+  throw new Error(
+    'GITHUB_APP_PRIVATE_KEY is invalid. Use raw PEM, escaped newlines, or base64-encoded PEM.'
+  );
+}
+
+function looksLikePem(value: string): boolean {
+  return value.includes('BEGIN') && value.includes('PRIVATE KEY');
+}
+
+function parseSessionTtlSeconds(input?: string): number {
+  const value = Number(input || '43200');
+  if (!Number.isFinite(value) || value <= 0) {
+    return 43200;
+  }
+  return Math.max(Math.floor(value), 300);
+}
+
+function parseOneTimeTokenTtlSeconds(input?: string): number {
+  const value = Number(input || '900');
+  if (!Number.isFinite(value) || value <= 0) {
+    return 900;
+  }
+  return Math.max(Math.floor(value), 60);
 }
 
 function parseCsvList(input?: string): string[] {

@@ -26,22 +26,22 @@ export function reorderKinds(
 
 export function kindDescription(kind: ResolutionKind): string {
   if (kind === 'github_remote') {
-    return 'git remote origin에서 owner/repo 추출 후 매핑';
+    return 'Resolve by extracting owner/repo from git remote origin.';
   }
   if (kind === 'repo_root_slug') {
-    return 'repo root basename slug로 매핑';
+    return 'Resolve by repository root basename slug.';
   }
-  return '사용자 지정 manual project key 선택';
+  return 'Resolve by manually selected project key.';
 }
 
 export function monorepoModeDescription(mode: MonorepoMode): string {
   if (mode === 'repo_only') {
-    return '항상 repo 단위 key만 사용';
+    return 'Always use repository-level key only.';
   }
   if (mode === 'repo_colon_subpath') {
-    return 'repo_key:subpath 형식으로 subproject 분리';
+    return 'Split subprojects using repo_key:subpath.';
   }
-  return 'repo_key#subpath 형식으로 subproject 분리';
+  return 'Split subprojects using repo_key#subpath.';
 }
 
 export function isSubprojectKey(projectKey: string): boolean {

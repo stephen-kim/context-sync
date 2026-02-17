@@ -1,15 +1,22 @@
 import type { PrismaClient } from '@prisma/client';
 import type { AuthenticatedUser } from '@claustrum/shared';
+import { hashApiKey, legacyHashApiKey } from './security/api-key.js';
+import { verifySessionToken } from './security/session-token.js';
 
 export type AuthContext = {
   user: AuthenticatedUser;
   projectAccessBypass: boolean;
+  authMethod: 'session' | 'api_key' | 'env_admin';
+  mustChangePassword: boolean;
+  apiKeyId?: string;
 };
 
 export async function authenticateBearerToken(args: {
   prisma: PrismaClient;
   token: string;
   envApiKeys: string[];
+  sessionSecret: string;
+  apiKeyHashSecret: string;
 }): Promise<AuthContext | null> {
   const token = args.token.trim();
   if (!token) {
@@ -26,12 +33,45 @@ export async function authenticateBearerToken(args: {
         envAdmin: true,
       },
       projectAccessBypass: true,
+      authMethod: 'env_admin',
+      mustChangePassword: false,
     };
   }
 
-  const apiKey = await args.prisma.apiKey.findFirst({
+  const sessionPayload = verifySessionToken(token, args.sessionSecret);
+  if (sessionPayload) {
+    const user = await args.prisma.user.findUnique({
+      where: { id: sessionPayload.sub },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        mustChangePassword: true,
+      },
+    });
+    if (!user) {
+      return null;
+    }
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        displayName: user.name,
+        source: 'database',
+      },
+      projectAccessBypass: false,
+      authMethod: 'session',
+      mustChangePassword: user.mustChangePassword,
+    };
+  }
+
+  const hashed = hashApiKey(token, args.apiKeyHashSecret);
+  const legacyHashed = legacyHashApiKey(token);
+  let apiKey = await args.prisma.apiKey.findFirst({
     where: {
-      key: token,
+      keyHash: {
+        in: [hashed, legacyHashed],
+      },
       revokedAt: null,
     },
     include: {
@@ -40,7 +80,45 @@ export async function authenticateBearerToken(args: {
   });
 
   if (!apiKey) {
+    // Legacy fallback for plaintext keys before key_hash migration.
+    apiKey = await args.prisma.apiKey.findFirst({
+      where: {
+        key: token,
+        revokedAt: null,
+      },
+      include: {
+        user: true,
+      },
+    });
+    if (apiKey) {
+      void args.prisma.apiKey
+        .update({
+          where: { id: apiKey.id },
+          data: {
+            keyHash: hashed,
+          },
+        })
+        .catch(() => {});
+    }
+  }
+
+  if (!apiKey) {
     return null;
+  }
+
+  if (apiKey.revokedAt) {
+    return null;
+  }
+
+  if (Math.random() < 0.2) {
+    void args.prisma.apiKey
+      .update({
+        where: { id: apiKey.id },
+        data: {
+          lastUsedAt: new Date(),
+        },
+      })
+      .catch(() => {});
   }
 
   return {
@@ -51,6 +129,9 @@ export async function authenticateBearerToken(args: {
       source: 'database',
     },
     projectAccessBypass: false,
+    authMethod: 'api_key',
+    mustChangePassword: apiKey.user.mustChangePassword,
+    apiKeyId: apiKey.id,
   };
 }
 

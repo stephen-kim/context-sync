@@ -47,7 +47,7 @@ export const tools: Tool[] = [
       properties: {
         type: {
           type: 'string',
-          enum: ['active_work', 'constraint', 'problem', 'goal', 'decision', 'note', 'caveat'],
+          enum: ['summary', 'activity', 'active_work', 'constraint', 'problem', 'goal', 'decision', 'note', 'caveat'],
         },
         content: { type: 'string' },
         metadata: { type: 'object' },
@@ -64,7 +64,7 @@ export const tools: Tool[] = [
         q: { type: 'string' },
         type: {
           type: 'string',
-          enum: ['active_work', 'constraint', 'problem', 'goal', 'decision', 'note', 'caveat'],
+          enum: ['summary', 'activity', 'active_work', 'constraint', 'problem', 'goal', 'decision', 'note', 'caveat'],
         },
         limit: { type: 'number' },
         since: { type: 'string' },
@@ -80,6 +80,20 @@ export const tools: Tool[] = [
       type: 'object',
       properties: {
         workspace_key: { type: 'string' },
+      },
+    },
+  },
+  {
+    name: 'context_bundle',
+    description: 'Fetch a standardized context bundle (snapshot + retrieval) for the current project',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        q: { type: 'string' },
+        mode: { type: 'string', enum: ['default', 'debug'] },
+        budget: { type: 'number' },
+        current_subpath: { type: 'string' },
+        project_key: { type: 'string' },
       },
     },
   },

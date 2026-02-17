@@ -1,0 +1,16 @@
+{
+  "raw.search": "已按“{q}”搜索原始日志（{count} 条结果）。",
+  "raw.view": "已查看原始消息 {message_id}。",
+  "decision.draft.created": "已创建决策草稿：{summary}",
+  "git.commit": "已记录 {branch} 分支的 commit 事件。",
+  "git.merge": "已记录 {branch} 分支的 merge 事件。",
+  "git.checkout": "已记录 {branch} 分支的 checkout 事件。",
+  "ci.success": "{repository} 的 {branch} CI 成功。",
+  "ci.failure": "{repository} 的 {branch} CI 失败。",
+  "integration.autowrite": "{provider} 自动写入状态：{status}。",
+  "workspace_settings.update": "工作区设置已更新。",
+  "project_mapping.update": "项目映射已更新。",
+  "integration.update": "集成设置已更新。",
+  "outbound.settings.update": "工作区 outbound 语言设置已更新。",
+  "outbound.policy.update": "{integration_type} 的 outbound 策略已更新。"
+}

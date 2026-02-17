@@ -18,13 +18,29 @@ type Props = {
   setNewProjectKey: (value: string) => void;
   newProjectName: string;
   setNewProjectName: (value: string) => void;
+  bootstrapProjectContext: (projectKey: string) => Promise<void>;
 };
 
 export function ProjectsPanel(props: Props) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Projects</CardTitle>
+        <div className="flex items-center justify-between gap-2">
+          <CardTitle>Projects</CardTitle>
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={!props.selectedProject}
+            onClick={() => {
+              if (!props.selectedProject) {
+                return;
+              }
+              void props.bootstrapProjectContext(props.selectedProject);
+            }}
+          >
+            Bootstrap Context
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="stack gap-1">

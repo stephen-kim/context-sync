@@ -1,7 +1,7 @@
 'use client';
 
 import type { FormEvent } from 'react';
-import type { ProjectMember } from '../lib/types';
+import type { ProjectMember, ProjectRole } from '../lib/types';
 import {
   Badge,
   Button,
@@ -21,12 +21,16 @@ import {
 
 type Props = {
   addProjectMember: (event: FormEvent) => void | Promise<void>;
+  updateProjectMemberRole: (userId: string, role: ProjectRole) => void | Promise<void>;
+  removeProjectMember: (userId: string) => void | Promise<void>;
   inviteEmail: string;
   setInviteEmail: (value: string) => void;
-  inviteRole: string;
-  setInviteRole: (value: string) => void;
+  inviteRole: ProjectRole;
+  setInviteRole: (value: ProjectRole) => void;
   members: ProjectMember[];
 };
+
+const PROJECT_ROLES: ProjectRole[] = ['OWNER', 'MAINTAINER', 'WRITER', 'READER'];
 
 export function ProjectMembersPanel(props: Props) {
   return (
@@ -42,9 +46,15 @@ export function ProjectMembersPanel(props: Props) {
             placeholder="member email"
             required
           />
-          <Select value={props.inviteRole} onChange={(event) => props.setInviteRole(event.target.value)}>
-            <option value="MEMBER">MEMBER</option>
-            <option value="ADMIN">ADMIN</option>
+          <Select
+            value={props.inviteRole}
+            onChange={(event) => props.setInviteRole(event.target.value as ProjectRole)}
+          >
+            {PROJECT_ROLES.map((role) => (
+              <option key={role} value={role}>
+                {role}
+              </option>
+            ))}
           </Select>
           <Button type="submit" className="md:col-span-2">
             Invite Member
@@ -55,6 +65,7 @@ export function ProjectMembersPanel(props: Props) {
             <TableRow>
               <TableHead>User</TableHead>
               <TableHead>Role</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -66,6 +77,29 @@ export function ProjectMembersPanel(props: Props) {
                 </TableCell>
                 <TableCell>
                   <Badge>{member.role}</Badge>
+                </TableCell>
+                <TableCell>
+                  <div className="toolbar">
+                    <Select
+                      value={member.role}
+                      onChange={(event) =>
+                        void props.updateProjectMemberRole(member.user.id, event.target.value as ProjectRole)
+                      }
+                    >
+                      {PROJECT_ROLES.map((role) => (
+                        <option key={role} value={role}>
+                          {role}
+                        </option>
+                      ))}
+                    </Select>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => void props.removeProjectMember(member.user.id)}
+                    >
+                      Remove
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

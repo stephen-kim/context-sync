@@ -10,6 +10,9 @@ export type User = {
   name?: string | null;
 };
 
+export type WorkspaceRole = 'OWNER' | 'ADMIN' | 'MEMBER';
+export type ProjectRole = 'OWNER' | 'MAINTAINER' | 'WRITER' | 'READER';
+
 export type Project = {
   id: string;
   key: string;
@@ -18,12 +21,31 @@ export type Project = {
 
 export type ProjectMember = {
   id: string;
-  role: string;
+  role: ProjectRole;
   user: {
     id: string;
     email: string;
     name?: string | null;
   };
+};
+
+export type WorkspaceMember = {
+  id: string;
+  role: WorkspaceRole;
+  user: {
+    id: string;
+    email: string;
+    name?: string | null;
+  };
+};
+
+export type ApiKeyItem = {
+  id: string;
+  label?: string | null;
+  created_at: string;
+  revoked_at?: string | null;
+  last_used_at?: string | null;
+  created_by_user_id?: string | null;
 };
 
 export type MemoryItem = {
@@ -46,8 +68,69 @@ export type MemoryItem = {
   };
 };
 
+export type ContextBundleResponse = {
+  project: {
+    key: string;
+    name: string;
+  };
+  snapshot: {
+    summary: string;
+    top_decisions: Array<{
+      id: string;
+      summary: string;
+      status: string;
+      created_at: string;
+      evidence_ref?: Record<string, unknown>;
+    }>;
+    top_constraints: Array<{
+      id: string;
+      snippet: string;
+      created_at: string;
+      evidence_ref?: Record<string, unknown>;
+    }>;
+    active_work: Array<{
+      id: string;
+      snippet: string;
+      created_at: string;
+      evidence_ref?: Record<string, unknown>;
+    }>;
+    recent_activity: Array<{
+      id: string;
+      title: string;
+      created_at: string;
+      subpath?: string;
+    }>;
+  };
+  retrieval: {
+    query?: string;
+    results: Array<{
+      id: string;
+      type: string;
+      snippet: string;
+      score_breakdown?: Record<string, unknown>;
+      evidence_ref?: Record<string, unknown>;
+    }>;
+  };
+  debug?: {
+    resolved_workspace: string;
+    resolved_project: string;
+    monorepo_mode: string;
+    current_subpath?: string;
+    boosts_applied: Record<string, unknown>;
+    token_budget: Record<string, unknown>;
+    decision_extractor_recent: Array<Record<string, unknown>>;
+  };
+};
+
 export type ResolutionKind = 'github_remote' | 'repo_root_slug' | 'manual';
 export type MonorepoMode = 'repo_only' | 'repo_hash_subpath' | 'repo_colon_subpath';
+export type MonorepoContextMode = 'shared_repo' | 'split_on_demand' | 'split_auto';
+export type OidcSyncMode = 'add_only' | 'add_and_remove';
+export type GithubPermissionSyncMode = 'add_only' | 'add_and_remove';
+export type GithubWebhookSyncMode = 'add_only' | 'add_and_remove';
+export type OidcClaimGroupsFormat = 'id' | 'name';
+export type RetentionMode = 'archive' | 'hard_delete';
+export type SecuritySeverity = 'low' | 'medium' | 'high';
 
 export type WorkspaceSettings = {
   workspace_key: string;
@@ -74,15 +157,113 @@ export type WorkspaceSettings = {
   search_hybrid_alpha: number;
   search_hybrid_beta: number;
   search_default_limit: number;
+  search_type_weights: Record<string, number>;
+  search_recency_half_life_days: number;
+  search_subpath_boost_weight: number;
+  github_auto_create_projects: boolean;
+  github_auto_create_subprojects: boolean;
+  github_permission_sync_enabled: boolean;
+  github_permission_sync_mode: GithubPermissionSyncMode;
+  github_cache_ttl_seconds: number;
+  github_role_mapping: Record<string, 'owner' | 'maintainer' | 'writer' | 'reader'>;
+  github_webhook_enabled: boolean;
+  github_webhook_sync_mode: GithubWebhookSyncMode;
+  github_team_mapping_enabled: boolean;
+  github_project_key_prefix: string;
   github_key_prefix: string;
   local_key_prefix: string;
   enable_monorepo_resolution: boolean;
   monorepo_detection_level: number;
   monorepo_mode: MonorepoMode;
+  monorepo_context_mode: MonorepoContextMode;
+  monorepo_subpath_metadata_enabled: boolean;
+  monorepo_subpath_boost_enabled: boolean;
+  monorepo_subpath_boost_weight: number;
   monorepo_root_markers: string[];
   monorepo_workspace_globs: string[];
   monorepo_exclude_globs: string[];
   monorepo_max_depth: number;
+  default_outbound_locale: 'en' | 'ko' | 'ja' | 'es' | 'zh';
+  supported_outbound_locales: Array<'en' | 'ko' | 'ja' | 'es' | 'zh'>;
+  enable_activity_auto_log: boolean;
+  enable_decision_extraction: boolean;
+  decision_extraction_mode: 'llm_only' | 'hybrid_priority';
+  decision_default_status: 'draft' | 'confirmed';
+  decision_auto_confirm_enabled: boolean;
+  decision_auto_confirm_min_confidence: number;
+  decision_batch_size: number;
+  decision_backfill_days: number;
+  raw_access_min_role: ProjectRole;
+  retention_policy_enabled: boolean;
+  audit_retention_days: number;
+  raw_retention_days: number;
+  retention_mode: RetentionMode;
+  security_stream_enabled: boolean;
+  security_stream_sink_id?: string | null;
+  security_stream_min_severity: SecuritySeverity;
+  oidc_sync_mode: OidcSyncMode;
+  oidc_allow_auto_provision: boolean;
+};
+
+export type OidcProvider = {
+  id: string;
+  name: string;
+  issuer_url: string;
+  client_id: string;
+  client_secret_configured: boolean;
+  discovery_enabled: boolean;
+  scopes: string;
+  claim_groups_name: string;
+  claim_groups_format: OidcClaimGroupsFormat;
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type OidcGroupMapping = {
+  id: string;
+  provider_id: string;
+  claim_name: string;
+  group_id: string;
+  group_display_name: string;
+  target_type: 'workspace' | 'project';
+  target_key: string;
+  role: 'OWNER' | 'ADMIN' | 'MEMBER' | 'MAINTAINER' | 'WRITER' | 'READER';
+  priority: number;
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type OutboundIntegrationType =
+  | 'slack'
+  | 'jira'
+  | 'confluence'
+  | 'notion'
+  | 'webhook'
+  | 'email';
+
+export type OutboundMode = 'template' | 'llm';
+export type OutboundStyle = 'short' | 'normal' | 'verbose';
+export type OutboundLocale = 'en' | 'ko' | 'ja' | 'es' | 'zh';
+
+export type WorkspaceOutboundSettings = {
+  workspace_key: string;
+  default_outbound_locale: OutboundLocale;
+  supported_outbound_locales: OutboundLocale[];
+};
+
+export type OutboundPolicy = {
+  workspace_key: string;
+  integration_type: OutboundIntegrationType;
+  enabled: boolean;
+  locale_default: OutboundLocale;
+  supported_locales: OutboundLocale[];
+  mode: OutboundMode;
+  style: OutboundStyle;
+  template_overrides: Record<string, unknown>;
+  llm_prompt_system?: string | null;
+  llm_prompt_user?: string | null;
 };
 
 export type ProjectMapping = {
@@ -96,6 +277,15 @@ export type ProjectMapping = {
     key: string;
     name: string;
   };
+};
+
+export type MonorepoSubprojectPolicy = {
+  id: string;
+  repo_key: string;
+  subpath: string;
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
 };
 
 export type ImportSource = 'codex' | 'claude' | 'generic';
@@ -148,10 +338,25 @@ export type RawMessageDetail = {
 
 export type AuditLogItem = {
   id: string;
+  projectId?: string | null;
   actorUserId: string;
+  correlationId?: string | null;
   action: string;
   target: Record<string, unknown>;
   createdAt: string;
+};
+
+export type AccessTimelineSource = 'manual' | 'github' | 'oidc' | 'system';
+export type AccessTimelineAction = 'add' | 'change' | 'remove' | '';
+
+export type AccessTimelineItem = {
+  id: string;
+  created_at: string;
+  action_key: string;
+  actor_user_id?: string | null;
+  system_actor?: string | null;
+  correlation_id?: string | null;
+  params: Record<string, unknown>;
 };
 
 export type RawEventType = 'post_commit' | 'post_merge' | 'post_checkout';
@@ -235,7 +440,240 @@ export type IntegrationSettingsResponse = {
   };
 };
 
+export type GithubInstallationStatus = {
+  workspace_key: string;
+  connected: boolean;
+  installation: null | {
+    installation_id: string;
+    account_type: 'Organization' | 'User';
+    account_login: string;
+    repository_selection: 'all' | 'selected' | 'unknown';
+    permissions: Record<string, string>;
+    updated_at: string;
+  };
+};
+
+export type GithubRepoLinksResponse = {
+  workspace_key: string;
+  repos: Array<{
+    github_repo_id: string;
+    full_name: string;
+    private: boolean;
+    default_branch: string | null;
+    is_active: boolean;
+    updated_at: string;
+    linked_project_id: string | null;
+    linked_project_key: string | null;
+    linked_project_name: string | null;
+  }>;
+};
+
+export type GithubUserLinksResponse = {
+  workspace_key: string;
+  links: Array<{
+    user_id: string;
+    user_email: string;
+    user_name: string | null;
+    github_login: string;
+    github_user_id: string | null;
+    created_at: string;
+    updated_at: string;
+  }>;
+};
+
+export type GithubPermissionSyncResponse = {
+  workspace_key: string;
+  dry_run: boolean;
+  repos_processed: number;
+  users_matched: number;
+  added: number;
+  updated: number;
+  removed: number;
+  skipped_unmatched: number;
+  rate_limit_warnings?: string[];
+  unmatched_users: Array<{
+    repo_full_name: string;
+    github_login: string | null;
+    github_user_id: string | null;
+    permission: string;
+  }>;
+  repo_errors: Array<{ repo_full_name: string; error: string }>;
+};
+
+export type GithubPermissionStatusResponse = {
+  workspace_key: string;
+  github_permission_sync_enabled: boolean;
+  github_permission_sync_mode: GithubPermissionSyncMode;
+  github_cache_ttl_seconds: number;
+  github_role_mapping: Record<string, 'owner' | 'maintainer' | 'writer' | 'reader'>;
+  last_sync: null | {
+    created_at: string;
+    dry_run: boolean;
+    repos_processed: number;
+    users_matched: number;
+    added: number;
+    updated: number;
+    removed: number;
+    skipped_unmatched: number;
+  };
+  unmatched_users: Array<{
+    repo_full_name: string;
+    github_login: string | null;
+    github_user_id: string | null;
+    permission: string;
+  }>;
+};
+
+export type GithubPermissionPreviewResponse = {
+  workspace_key: string;
+  repo_full_name: string;
+  project_key: string | null;
+  computed_permissions: Array<{
+    github_user_id: string;
+    github_login: string | null;
+    permission: 'admin' | 'maintain' | 'write' | 'triage' | 'read';
+    matched_user_id: string | null;
+    matched_user_email: string | null;
+    mapped_project_role: 'OWNER' | 'MAINTAINER' | 'WRITER' | 'READER' | null;
+  }>;
+  unmatched_users: Array<{
+    github_user_id: string;
+    github_login: string | null;
+    permission: 'admin' | 'maintain' | 'write' | 'triage' | 'read';
+  }>;
+};
+
+export type GithubPermissionCacheStatusResponse = {
+  workspace_key: string;
+  ttl_seconds: number;
+  repo_teams_cache_count: number;
+  team_members_cache_count: number;
+  permission_cache_count: number;
+  latest_repo_teams_cache_at: string | null;
+  latest_team_members_cache_at: string | null;
+  latest_permission_cache_at: string | null;
+};
+
+export type GithubWebhookEventsResponse = {
+  workspace_key: string;
+  deliveries: Array<{
+    id: string;
+    delivery_id: string;
+    installation_id: string;
+    event_type: string;
+    status: 'queued' | 'processing' | 'done' | 'failed';
+    affected_repos_count: number;
+    error: string | null;
+    created_at: string;
+    updated_at: string;
+  }>;
+};
+
+export type GithubTeamMappingsResponse = {
+  workspace_key: string;
+  mappings: Array<{
+    id: string;
+    provider_installation_id: string | null;
+    github_team_id: string;
+    github_team_slug: string;
+    github_org_login: string;
+    target_type: 'workspace' | 'project';
+    target_key: string;
+    role: 'OWNER' | 'ADMIN' | 'MEMBER' | 'MAINTAINER' | 'WRITER' | 'READER';
+    enabled: boolean;
+    priority: number;
+    created_at: string;
+    updated_at: string;
+  }>;
+};
+
+export type AuditSinksResponse = {
+  workspace_key: string;
+  sinks: Array<{
+    id: string;
+    type: 'webhook' | 'http';
+    name: string;
+    enabled: boolean;
+    endpoint_url: string;
+    has_secret: boolean;
+    event_filter: {
+      include_prefixes: string[];
+      exclude_actions: string[];
+    };
+    retry_policy: {
+      max_attempts: number;
+      backoff_sec: number[];
+    };
+    created_at: string;
+    updated_at: string;
+  }>;
+};
+
+export type AuditDeliveryQueueResponse = {
+  workspace_key: string;
+  deliveries: Array<{
+    id: string;
+    sink_id: string;
+    sink_name: string;
+    audit_log_id: string;
+    action_key: string;
+    status: 'queued' | 'sending' | 'delivered' | 'failed';
+    attempt_count: number;
+    next_attempt_at: string;
+    last_error: string | null;
+    created_at: string;
+    updated_at: string;
+  }>;
+};
+
+export type DetectionRulesResponse = {
+  workspace_key: string;
+  rules: Array<{
+    id: string;
+    name: string;
+    enabled: boolean;
+    severity: SecuritySeverity;
+    condition: Record<string, unknown>;
+    notify: Record<string, unknown>;
+    created_at: string;
+    updated_at: string;
+  }>;
+};
+
+export type DetectionsResponse = {
+  workspace_key: string;
+  detections: Array<{
+    id: string;
+    rule_id: string;
+    rule_name: string;
+    severity: SecuritySeverity;
+    status: 'open' | 'ack' | 'closed';
+    actor_user_id: string | null;
+    correlation_id: string | null;
+    evidence: Record<string, unknown>;
+    triggered_at: string;
+    created_at: string;
+    updated_at: string;
+  }>;
+};
+
+export type DecisionKeywordPolicy = {
+  id: string;
+  name: string;
+  positive_keywords: string[];
+  negative_keywords: string[];
+  file_path_positive_patterns: string[];
+  file_path_negative_patterns: string[];
+  weight_positive: number;
+  weight_negative: number;
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
 export const MEMORY_TYPES = [
+  'summary',
+  'activity',
   'active_work',
   'constraint',
   'problem',

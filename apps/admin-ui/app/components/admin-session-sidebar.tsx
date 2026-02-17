@@ -6,10 +6,8 @@ import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '
 
 type Props = {
   apiBaseUrl: string;
-  apiKeyInput: string;
-  setApiKeyInput: (value: string) => void;
-  submitApiKey: (event: FormEvent) => void;
   initializeData: () => Promise<void>;
+  logout: () => Promise<void>;
   workspaces: Workspace[];
   selectedWorkspace: string;
   setSelectedWorkspace: (key: string) => void;
@@ -30,30 +28,35 @@ export function AdminSessionSidebar(props: Props) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Admin Session</CardTitle>
+        <div className="flex items-center gap-3">
+          <img
+            src="/brand/logo-white.svg"
+            alt="Claustrum logo"
+            width={28}
+            height={28}
+            className="rounded-sm border border-border/60 bg-black/40 p-1"
+          />
+          <div>
+            <CardTitle>Claustrum Admin</CardTitle>
+            <p className="muted text-xs">Session and access controls</p>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
-        <form className="stack" onSubmit={props.submitApiKey}>
+        <div className="stack gap-2">
           <div className="stack gap-1">
             <Label className="muted">Memory Core URL</Label>
             <Input value={props.apiBaseUrl} readOnly />
           </div>
-          <div className="stack gap-1">
-            <Label className="muted">Admin API Key</Label>
-            <Input
-              value={props.apiKeyInput}
-              onChange={(event) => props.setApiKeyInput(event.target.value)}
-              placeholder="dev-admin-key"
-            />
-          </div>
           <div className="toolbar">
-            <Button type="submit">Connect</Button>
             <Button variant="ghost" type="button" onClick={() => void props.initializeData()}>
               Refresh
             </Button>
+            <Button variant="outline" type="button" onClick={() => void props.logout()}>
+              Logout
+            </Button>
           </div>
-          <p className="muted">Admin API key is persisted in local browser storage for session convenience.</p>
-        </form>
+        </div>
 
         <div className="stack gap-2">
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Workspaces</h3>
