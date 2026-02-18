@@ -19,7 +19,10 @@ Claustrum은 MCP 클라이언트를 위한 팀 확장형 Memory Core 시스템�
 ## 다음 문서
 
 - [설치 가이드](Installation.ko)
+- [환경변수 전체 레퍼런스](Environment-Variables.ko)
 - [의존성 관리 (pnpm)](dependency-management)
+- [CI](ci)
+- [Release Gate](release-gate)
 - [운영 가이드](Operations.ko)
 - [보안 및 MCP I/O](Security-and-MCP-IO.ko)
 - [OIDC SSO](OIDC-SSO.ko)
@@ -30,6 +33,11 @@ Claustrum은 MCP 클라이언트를 위한 팀 확장형 Memory Core 시스템�
 - [GitHub 권한 동기화](github-permission-sync)
 - [Slack 변경 이력 알림 연동](Slack-Audit.ko)
 - [Outbound 로케일/프롬프트 정책](Outbound-Locales.ko)
+- [Persona (사용자별 컨텍스트 모드)](persona)
+- [Active Work Stale/Auto-close](active-work-stale)
+- [Active Work Timeline](active-work-timeline)
+- [Context Debug](context-debug)
+- [Context Bundle Eval](context-bundle-eval)
 - [릴리즈 노트](Release-Notes.ko)
 - [Installation (English)](Installation)
 

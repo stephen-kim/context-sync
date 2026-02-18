@@ -64,6 +64,12 @@ type Props = {
   setDecisionBatchSize: (value: number) => void;
   decisionBackfillDays: number;
   setDecisionBackfillDays: (value: number) => void;
+  activeWorkStaleDays: number;
+  setActiveWorkStaleDays: (value: number) => void;
+  activeWorkAutoCloseEnabled: boolean;
+  setActiveWorkAutoCloseEnabled: (value: boolean) => void;
+  activeWorkAutoCloseDays: number;
+  setActiveWorkAutoCloseDays: (value: number) => void;
   rawAccessMinRole: ProjectRole;
   setRawAccessMinRole: (value: ProjectRole) => void;
   searchDefaultMode: 'hybrid' | 'keyword' | 'semantic';
@@ -230,6 +236,9 @@ export function ResolutionSettingsPanel(props: Props) {
               props.setDecisionAutoConfirmMinConfidence(0.9);
               props.setDecisionBatchSize(25);
               props.setDecisionBackfillDays(30);
+              props.setActiveWorkStaleDays(14);
+              props.setActiveWorkAutoCloseEnabled(false);
+              props.setActiveWorkAutoCloseDays(45);
               props.setRawAccessMinRole('WRITER');
               props.setSearchDefaultMode('hybrid');
               props.setSearchHybridAlpha(0.6);
@@ -446,6 +455,42 @@ export function ResolutionSettingsPanel(props: Props) {
                 <option value="READER">READER</option>
               </Select>
               <div className="muted">default: WRITER</div>
+            </div>
+          </div>
+          <div className="row">
+            <div className="stack gap-1">
+              <Label className="muted">Active Work Stale Days</Label>
+              <Input
+                type="number"
+                min={1}
+                max={3650}
+                value={props.activeWorkStaleDays}
+                onChange={(event) =>
+                  props.setActiveWorkStaleDays(Math.min(Math.max(Number(event.target.value) || 1, 1), 3650))
+                }
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="active-work-auto-close-enabled"
+                checked={props.activeWorkAutoCloseEnabled}
+                onCheckedChange={(value) => props.setActiveWorkAutoCloseEnabled(value === true)}
+              />
+              <Label htmlFor="active-work-auto-close-enabled" className="text-sm text-muted-foreground">
+                enable active work auto-close
+              </Label>
+            </div>
+            <div className="stack gap-1">
+              <Label className="muted">Active Work Auto-close Days</Label>
+              <Input
+                type="number"
+                min={1}
+                max={3650}
+                value={props.activeWorkAutoCloseDays}
+                onChange={(event) =>
+                  props.setActiveWorkAutoCloseDays(Math.min(Math.max(Number(event.target.value) || 1, 1), 3650))
+                }
+              />
             </div>
           </div>
           <div className="row">

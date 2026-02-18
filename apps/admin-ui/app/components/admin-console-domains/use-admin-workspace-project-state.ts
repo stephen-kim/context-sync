@@ -59,6 +59,24 @@ export function useAdminWorkspaceProjectState() {
   );
   const [searchRecencyHalfLifeDays, setSearchRecencyHalfLifeDays] = useState(14);
   const [searchSubpathBoostWeight, setSearchSubpathBoostWeight] = useState(1.5);
+  const [bundleTokenBudgetTotal, setBundleTokenBudgetTotal] = useState(3000);
+  const [bundleBudgetGlobalWorkspacePct, setBundleBudgetGlobalWorkspacePct] = useState(0.15);
+  const [bundleBudgetGlobalUserPct, setBundleBudgetGlobalUserPct] = useState(0.1);
+  const [bundleBudgetProjectPct, setBundleBudgetProjectPct] = useState(0.45);
+  const [bundleBudgetRetrievalPct, setBundleBudgetRetrievalPct] = useState(0.3);
+  const [globalRulesRecommendMax, setGlobalRulesRecommendMax] = useState(5);
+  const [globalRulesWarnThreshold, setGlobalRulesWarnThreshold] = useState(10);
+  const [globalRulesSummaryEnabled, setGlobalRulesSummaryEnabled] = useState(true);
+  const [globalRulesSummaryMinCount, setGlobalRulesSummaryMinCount] = useState(8);
+  const [globalRulesSelectionMode, setGlobalRulesSelectionMode] = useState<
+    'score' | 'recent' | 'priority_only'
+  >('score');
+  const [globalRulesRoutingEnabled, setGlobalRulesRoutingEnabled] = useState(true);
+  const [globalRulesRoutingMode, setGlobalRulesRoutingMode] = useState<
+    'semantic' | 'keyword' | 'hybrid'
+  >('hybrid');
+  const [globalRulesRoutingTopK, setGlobalRulesRoutingTopK] = useState(5);
+  const [globalRulesRoutingMinScore, setGlobalRulesRoutingMinScore] = useState(0.2);
   const [retentionPolicyEnabled, setRetentionPolicyEnabled] = useState(false);
   const [auditRetentionDays, setAuditRetentionDays] = useState(365);
   const [rawRetentionDays, setRawRetentionDays] = useState(90);
@@ -169,6 +187,20 @@ export function useAdminWorkspaceProjectState() {
     );
     setSearchRecencyHalfLifeDays(14);
     setSearchSubpathBoostWeight(1.5);
+    setBundleTokenBudgetTotal(3000);
+    setBundleBudgetGlobalWorkspacePct(0.15);
+    setBundleBudgetGlobalUserPct(0.1);
+    setBundleBudgetProjectPct(0.45);
+    setBundleBudgetRetrievalPct(0.3);
+    setGlobalRulesRecommendMax(5);
+    setGlobalRulesWarnThreshold(10);
+    setGlobalRulesSummaryEnabled(true);
+    setGlobalRulesSummaryMinCount(8);
+    setGlobalRulesSelectionMode('score');
+    setGlobalRulesRoutingEnabled(true);
+    setGlobalRulesRoutingMode('hybrid');
+    setGlobalRulesRoutingTopK(5);
+    setGlobalRulesRoutingMinScore(0.2);
     setRetentionPolicyEnabled(false);
     setAuditRetentionDays(365);
     setRawRetentionDays(90);
@@ -305,6 +337,34 @@ export function useAdminWorkspaceProjectState() {
     setSearchRecencyHalfLifeDays,
     searchSubpathBoostWeight,
     setSearchSubpathBoostWeight,
+    bundleTokenBudgetTotal,
+    setBundleTokenBudgetTotal,
+    bundleBudgetGlobalWorkspacePct,
+    setBundleBudgetGlobalWorkspacePct,
+    bundleBudgetGlobalUserPct,
+    setBundleBudgetGlobalUserPct,
+    bundleBudgetProjectPct,
+    setBundleBudgetProjectPct,
+    bundleBudgetRetrievalPct,
+    setBundleBudgetRetrievalPct,
+    globalRulesRecommendMax,
+    setGlobalRulesRecommendMax,
+    globalRulesWarnThreshold,
+    setGlobalRulesWarnThreshold,
+    globalRulesSummaryEnabled,
+    setGlobalRulesSummaryEnabled,
+    globalRulesSummaryMinCount,
+    setGlobalRulesSummaryMinCount,
+    globalRulesSelectionMode,
+    setGlobalRulesSelectionMode,
+    globalRulesRoutingEnabled,
+    setGlobalRulesRoutingEnabled,
+    globalRulesRoutingMode,
+    setGlobalRulesRoutingMode,
+    globalRulesRoutingTopK,
+    setGlobalRulesRoutingTopK,
+    globalRulesRoutingMinScore,
+    setGlobalRulesRoutingMinScore,
     retentionPolicyEnabled,
     setRetentionPolicyEnabled,
     auditRetentionDays,

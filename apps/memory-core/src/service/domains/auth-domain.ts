@@ -22,6 +22,7 @@ import {
   verifyOneTimeKeyToken,
   type AuthInviteApiKeyDeps,
 } from './auth-invite-api-key-shared.js';
+import { contextPersonaSchema, type ContextPersona } from '@claustrum/shared';
 
 export async function loginDomain(
   deps: AuthInviteApiKeyDeps,
@@ -91,6 +92,7 @@ export async function getAuthMeDomain(
     name: string | null;
     must_change_password: boolean;
     email_verified: boolean;
+    context_persona: ContextPersona;
     auth_method: 'session' | 'api_key' | 'env_admin';
     active_api_key_count: number;
     needs_welcome_setup: boolean;
@@ -104,13 +106,14 @@ export async function getAuthMeDomain(
         name: args.auth.user.displayName ?? null,
         must_change_password: false,
         email_verified: true,
+        context_persona: 'neutral',
         auth_method: 'env_admin',
         active_api_key_count: 0,
         needs_welcome_setup: false,
       },
     };
   }
-  const [user, activeApiKeyCount] = await Promise.all([
+  const [user, activeApiKeyCount, userSetting] = await Promise.all([
     deps.prisma.user.findUnique({
       where: { id: args.auth.user.id },
       select: {
@@ -127,6 +130,10 @@ export async function getAuthMeDomain(
         revokedAt: null,
       },
     }),
+    deps.prisma.userSetting.findUnique({
+      where: { userId: args.auth.user.id },
+      select: { contextPersona: true },
+    }),
   ]);
   if (!user) {
     throw new NotFoundError('User not found');
@@ -138,11 +145,72 @@ export async function getAuthMeDomain(
       name: user.name,
       must_change_password: user.mustChangePassword,
       email_verified: user.emailVerified,
+      context_persona: mapContextPersona(userSetting?.contextPersona),
       auth_method: args.auth.authMethod,
       active_api_key_count: activeApiKeyCount,
       needs_welcome_setup: !user.mustChangePassword && activeApiKeyCount < 1,
     },
   };
+}
+
+export async function getContextPersonaDomain(
+  deps: AuthInviteApiKeyDeps,
+  args: { auth: AuthContext }
+): Promise<{ context_persona: ContextPersona }> {
+  if (args.auth.authMethod === 'env_admin') {
+    return { context_persona: 'neutral' };
+  }
+  const setting = await deps.prisma.userSetting.findUnique({
+    where: { userId: args.auth.user.id },
+    select: { contextPersona: true },
+  });
+  return { context_persona: mapContextPersona(setting?.contextPersona) };
+}
+
+export async function updateContextPersonaDomain(
+  deps: AuthInviteApiKeyDeps,
+  args: {
+    auth: AuthContext;
+    contextPersona: unknown;
+  }
+): Promise<{ context_persona: ContextPersona }> {
+  if (args.auth.authMethod === 'env_admin') {
+    throw new AuthorizationError('context persona cannot be updated with env admin credentials.');
+  }
+
+  const parsed = contextPersonaSchema.safeParse(args.contextPersona);
+  if (!parsed.success) {
+    throw new ValidationError(parsed.error.issues.map((issue) => issue.message).join(', '));
+  }
+
+  const updated = await deps.prisma.userSetting.upsert({
+    where: { userId: args.auth.user.id },
+    update: {
+      contextPersona: parsed.data,
+    },
+    create: {
+      userId: args.auth.user.id,
+      contextPersona: parsed.data,
+    },
+    select: { contextPersona: true },
+  });
+
+  const auditWorkspace = await deps.resolveAuditWorkspaceForUser(args.auth.user.id);
+  if (auditWorkspace) {
+    await deps.recordAudit({
+      workspaceId: auditWorkspace.id,
+      workspaceKey: auditWorkspace.key,
+      actorUserId: args.auth.user.id,
+      actorUserEmail: args.auth.user.email,
+      action: 'user.persona.changed',
+      target: {
+        actor_user_id: args.auth.user.id,
+        context_persona: updated.contextPersona,
+      },
+    });
+  }
+
+  return { context_persona: mapContextPersona(updated.contextPersona) };
 }
 
 export async function logoutDomain(): Promise<{ ok: true }> {
@@ -321,3 +389,10 @@ export async function reportGitCaptureInstalledDomain(
   return { ok: true };
 }
 
+function mapContextPersona(input: unknown): ContextPersona {
+  const parsed = contextPersonaSchema.safeParse(input);
+  if (!parsed.success) {
+    return 'neutral';
+  }
+  return parsed.data;
+}

@@ -19,6 +19,7 @@ type Props = {
   newProjectName: string;
   setNewProjectName: (value: string) => void;
   bootstrapProjectContext: (projectKey: string) => Promise<void>;
+  recomputeProjectActiveWork: (projectKey: string) => Promise<void>;
 };
 
 export function ProjectsPanel(props: Props) {
@@ -27,19 +28,34 @@ export function ProjectsPanel(props: Props) {
       <CardHeader>
         <div className="flex items-center justify-between gap-2">
           <CardTitle>Projects</CardTitle>
-          <Button
-            type="button"
-            variant="secondary"
-            disabled={!props.selectedProject}
-            onClick={() => {
-              if (!props.selectedProject) {
-                return;
-              }
-              void props.bootstrapProjectContext(props.selectedProject);
-            }}
-          >
-            Bootstrap Context
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={!props.selectedProject}
+              onClick={() => {
+                if (!props.selectedProject) {
+                  return;
+                }
+                void props.bootstrapProjectContext(props.selectedProject);
+              }}
+            >
+              Bootstrap Context
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={!props.selectedProject}
+              onClick={() => {
+                if (!props.selectedProject) {
+                  return;
+                }
+                void props.recomputeProjectActiveWork(props.selectedProject);
+              }}
+            >
+              Recompute Active Work
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent>

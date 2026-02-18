@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { ApiKeyItem, User, WorkspaceMember, WorkspaceRole } from '../../lib/types';
+import type { ApiKeyItem, ContextPersona, User, WorkspaceMember, WorkspaceRole } from '../../lib/types';
 
 export function useAdminAuthInviteApiKeyState() {
   const [users, setUsers] = useState<User[]>([]);
@@ -19,6 +19,7 @@ export function useAdminAuthInviteApiKeyState() {
   const [selectedUserApiKeys, setSelectedUserApiKeys] = useState<ApiKeyItem[]>([]);
   const [selectedApiKeyUserId, setSelectedApiKeyUserId] = useState('');
   const [selfApiKeyLabel, setSelfApiKeyLabel] = useState('');
+  const [contextPersona, setContextPersona] = useState<ContextPersona>('neutral');
   const [generatedSelfApiKey, setGeneratedSelfApiKey] = useState('');
   const [latestOneTimeUrl, setLatestOneTimeUrl] = useState('');
   const [latestOneTimeExpiresAt, setLatestOneTimeExpiresAt] = useState('');
@@ -35,6 +36,7 @@ export function useAdminAuthInviteApiKeyState() {
     setSelfApiKeys([]);
     setSelectedUserApiKeys([]);
     setSelectedApiKeyUserId('');
+    setContextPersona('neutral');
     setGeneratedSelfApiKey('');
     setLatestOneTimeUrl('');
     setLatestOneTimeExpiresAt('');
@@ -71,6 +73,8 @@ export function useAdminAuthInviteApiKeyState() {
     setSelectedApiKeyUserId,
     selfApiKeyLabel,
     setSelfApiKeyLabel,
+    contextPersona,
+    setContextPersona,
     generatedSelfApiKey,
     setGeneratedSelfApiKey,
     latestOneTimeUrl,

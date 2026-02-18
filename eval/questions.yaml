@@ -1,0 +1,158 @@
+version: 1
+defaults:
+  workspace_key: personal
+  project_key: default
+  budget: 3000
+
+questions:
+  - id: why_postgres_migration
+    category: why
+    persona: architect
+    q: "Why did we migrate from SQLite to Postgres?"
+    expected:
+      must_include_types: ["decision"]
+      should_include_keywords: ["postgres", "sqlite", "migrate"]
+
+  - id: why_github_authority
+    category: why
+    persona: architect
+    q: "Why is GitHub the default authority for project permissions?"
+    expected:
+      must_include_types: ["decision", "constraint"]
+      should_include_keywords: ["github", "authority", "permission"]
+
+  - id: why_append_only_audit
+    category: why
+    persona: reviewer
+    q: "Why is audit append-only?"
+    expected:
+      must_include_types: ["constraint"]
+      should_include_keywords: ["append-only", "audit"]
+
+  - id: what_active_work_now
+    category: what
+    persona: author
+    q: "What am I working on right now?"
+    expected:
+      must_include_fields: ["active_work"]
+      should_include_types: ["activity"]
+
+  - id: what_recent_permission_changes
+    category: what
+    persona: neutral
+    q: "What changed recently in GitHub permission sync?"
+    expected:
+      should_include_types: ["activity", "decision"]
+      should_include_keywords: ["permission", "sync"]
+
+  - id: what_current_constraints
+    category: what
+    persona: reviewer
+    q: "What are the current security constraints?"
+    expected:
+      must_include_types: ["constraint"]
+      should_include_keywords: ["security"]
+
+  - id: how_permission_calculated
+    category: how
+    persona: architect
+    q: "How do we compute effective permissions from GitHub?"
+    expected:
+      must_include_types: ["decision"]
+      should_include_keywords: ["max", "direct", "team"]
+
+  - id: how_context_bundle_built
+    category: how
+    persona: architect
+    q: "How is context bundle assembled?"
+    expected:
+      must_include_fields: ["snapshot"]
+      should_include_keywords: ["bundle", "retrieval", "budget"]
+
+  - id: how_monorepo_split_on_demand
+    category: how
+    persona: architect
+    q: "How does split_on_demand mode work in monorepo projects?"
+    expected:
+      should_include_keywords: ["split_on_demand", "subpath", "repo"]
+
+  - id: how_auto_switch_and_pin
+    category: how
+    persona: author
+    q: "How do auto-switch and pin mode interact?"
+    expected:
+      should_include_keywords: ["auto", "switch", "pin"]
+
+  - id: security_api_keys
+    category: security
+    persona: reviewer
+    q: "How are API keys protected?"
+    expected:
+      must_include_types: ["constraint"]
+      should_include_keywords: ["hash", "one-time", "revoke"]
+
+  - id: security_workspace_isolation
+    category: security
+    persona: reviewer
+    q: "How do we guarantee workspace isolation?"
+    expected:
+      must_include_types: ["constraint"]
+      should_include_keywords: ["workspace", "isolation"]
+
+  - id: security_raw_access
+    category: security
+    persona: reviewer
+    q: "Who can access raw search and raw message views?"
+    expected:
+      should_include_keywords: ["raw.search", "raw.view", "writer", "audit"]
+
+  - id: policy_global_rules
+    category: policy
+    persona: neutral
+    q: "When should we use global rules versus project memories?"
+    expected:
+      must_include_fields: ["global"]
+      should_include_keywords: ["global", "project", "rule"]
+
+  - id: policy_oidc_vs_github
+    category: policy
+    persona: architect
+    q: "What is the difference between OIDC gate and GitHub authority?"
+    expected:
+      should_include_keywords: ["oidc", "github", "authority"]
+
+  - id: policy_manual_override
+    category: policy
+    persona: reviewer
+    q: "How are manual permission overrides treated?"
+    expected:
+      should_include_keywords: ["manual", "override", "exception"]
+
+  - id: perf_hybrid_search
+    category: performance
+    persona: architect
+    q: "How is hybrid search ranked?"
+    expected:
+      should_include_keywords: ["vector", "fts", "boost", "recency"]
+
+  - id: perf_cache_ttl
+    category: performance
+    persona: architect
+    q: "How do GitHub permission caches reduce API load?"
+    expected:
+      should_include_keywords: ["cache", "ttl", "rate limit"]
+
+  - id: edge_no_decisions
+    category: edge
+    persona: neutral
+    q: "What happens if there are no decision memories yet?"
+    expected:
+      must_include_fields: ["snapshot"]
+      must_not_include_types: ["decision"]
+
+  - id: edge_subpath_context_mix
+    category: edge
+    persona: neutral
+    q: "If I work in apps/admin-ui, does context mix with apps/memory-core?"
+    expected:
+      should_include_keywords: ["subpath", "shared_repo", "split"]

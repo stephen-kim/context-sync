@@ -309,6 +309,8 @@ async function startServer() {
   let detectionWorkerRunning = false;
   let retentionWorkerRunning = false;
   let retentionLastRunDay = '';
+  let activeWorkWorkerRunning = false;
+  let activeWorkLastRunDay = '';
   setInterval(() => {
     if (webhookWorkerRunning) {
       return;
@@ -387,6 +389,28 @@ async function startServer() {
       })
       .finally(() => {
         retentionWorkerRunning = false;
+      });
+  }, 60 * 60 * 1000);
+  setInterval(() => {
+    const now = new Date();
+    const dayKey = now.toISOString().slice(0, 10);
+    if (activeWorkLastRunDay === dayKey || activeWorkWorkerRunning) {
+      return;
+    }
+    activeWorkWorkerRunning = true;
+    void service
+      .runActiveWorkNightly({ now })
+      .then((result) => {
+        activeWorkLastRunDay = dayKey;
+        logger.info(
+          `Active-work nightly recompute: workspaces=${result.workspaces_processed}, projects=${result.projects_processed}, changed=${result.changed_projects}`
+        );
+      })
+      .catch((error) => {
+        logger.warn(`Active-work nightly recompute failed: ${error instanceof Error ? error.message : String(error)}`);
+      })
+      .finally(() => {
+        activeWorkWorkerRunning = false;
       });
   }, 60 * 60 * 1000);
   app.listen(config.port, config.host, () => {

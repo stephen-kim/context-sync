@@ -62,11 +62,32 @@ export type ContextBundleResponse = {
     key: string;
     name: string;
   };
+  global?: {
+    workspace_rules: Array<Record<string, unknown>>;
+    user_rules: Array<Record<string, unknown>>;
+    workspace_summary?: string;
+    user_summary?: string;
+    routing?: {
+      mode: 'semantic' | 'keyword' | 'hybrid';
+      q_used?: string;
+      selected_rule_ids: string[];
+      dropped_rule_ids: string[];
+      score_breakdown?: Array<Record<string, unknown>>;
+    };
+    warnings: Array<{ level: 'info' | 'warn'; message: string }>;
+  };
   snapshot: {
     summary: string;
     top_decisions: Array<Record<string, unknown>>;
     top_constraints: Array<Record<string, unknown>>;
-    active_work: Array<Record<string, unknown>>;
+    active_work: Array<{
+      id: string;
+      title: string;
+      confidence: number;
+      status: string;
+      last_updated_at: string;
+      evidence_ids: string[];
+    }>;
     recent_activity: Array<Record<string, unknown>>;
   };
   retrieval: {

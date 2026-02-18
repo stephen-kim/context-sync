@@ -13,9 +13,20 @@ import {
   defaultAutoConfirmAllowedEventTypes,
   defaultAutoConfirmKeywordAllowlist,
   defaultAutoConfirmKeywordDenylist,
+  defaultBundleBudgetGlobalUserPct,
+  defaultBundleBudgetGlobalWorkspacePct,
+  defaultBundleBudgetProjectPct,
+  defaultBundleBudgetRetrievalPct,
+  defaultBundleTokenBudgetTotal,
   defaultCheckoutDailyLimit,
   defaultCheckoutDebounceSeconds,
+  defaultGlobalRulesRecommendMax,
+  defaultGlobalRulesRoutingMinScore,
+  defaultGlobalRulesRoutingTopK,
+  defaultGlobalRulesSummaryMinCount,
+  defaultGlobalRulesWarnThreshold,
   defaultOutboundLocales,
+  defaultPersonaWeights,
   defaultMonorepoExcludeGlobs,
   defaultMonorepoRootMarkers,
   defaultMonorepoSubpathBoostWeight,
@@ -93,6 +104,21 @@ export type EffectiveWorkspaceSettings = {
   searchTypeWeights: Record<string, number>;
   searchRecencyHalfLifeDays: number;
   searchSubpathBoostWeight: number;
+  bundleTokenBudgetTotal: number;
+  bundleBudgetGlobalWorkspacePct: number;
+  bundleBudgetGlobalUserPct: number;
+  bundleBudgetProjectPct: number;
+  bundleBudgetRetrievalPct: number;
+  globalRulesRecommendMax: number;
+  globalRulesWarnThreshold: number;
+  globalRulesSummaryEnabled: boolean;
+  globalRulesSummaryMinCount: number;
+  globalRulesSelectionMode: 'score' | 'recent' | 'priority_only';
+  globalRulesRoutingEnabled: boolean;
+  globalRulesRoutingMode: 'semantic' | 'keyword' | 'hybrid';
+  globalRulesRoutingTopK: number;
+  globalRulesRoutingMinScore: number;
+  personaWeights: Record<string, Record<string, number>>;
   githubProjectKeyPrefix: string;
   githubKeyPrefix: string;
   localKeyPrefix: string;
@@ -117,6 +143,9 @@ export type EffectiveWorkspaceSettings = {
   decisionAutoConfirmMinConfidence: number;
   decisionBatchSize: number;
   decisionBackfillDays: number;
+  activeWorkStaleDays: number;
+  activeWorkAutoCloseEnabled: boolean;
+  activeWorkAutoCloseDays: number;
   rawAccessMinRole: 'OWNER' | 'MAINTAINER' | 'WRITER' | 'READER';
   retentionPolicyEnabled: boolean;
   auditRetentionDays: number;
@@ -187,6 +216,13 @@ function parseNonNegativeInt(input: unknown, fallback: number): number {
     return fallback;
   }
   return value;
+}
+
+function clampFloat(value: number, fallback: number, min: number, max: number): number {
+  if (!Number.isFinite(value)) {
+    return fallback;
+  }
+  return Math.min(Math.max(value, min), max);
 }
 
 function parseDetectionLevel(input: unknown, fallback: number): number {
@@ -262,6 +298,20 @@ function parseSecuritySeverity(input: unknown): 'low' | 'medium' | 'high' {
   return 'medium';
 }
 
+function parseGlobalRulesSelectionMode(input: unknown): 'score' | 'recent' | 'priority_only' {
+  if (input === 'recent' || input === 'priority_only') {
+    return input;
+  }
+  return 'score';
+}
+
+function parseGlobalRulesRoutingMode(input: unknown): 'semantic' | 'keyword' | 'hybrid' {
+  if (input === 'semantic' || input === 'keyword') {
+    return input;
+  }
+  return 'hybrid';
+}
+
 function parseGithubRoleMapping(
   input: unknown
 ): Record<string, 'owner' | 'maintainer' | 'writer' | 'reader'> {
@@ -296,6 +346,48 @@ function parseSearchTypeWeights(input: unknown): Record<string, number> {
     }
     parsed[normalizedKey] = Math.min(numeric, 100);
   }
+  return parsed;
+}
+
+function parsePersonaWeights(input: unknown): Record<string, Record<string, number>> {
+  const fallback = Object.fromEntries(
+    Object.entries(defaultPersonaWeights).map(([persona, weights]) => [persona, { ...weights }])
+  ) as Record<string, Record<string, number>>;
+
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    return fallback;
+  }
+
+  const parsed: Record<string, Record<string, number>> = {};
+  for (const [personaKey, rawWeights] of Object.entries(input as Record<string, unknown>)) {
+    if (!rawWeights || typeof rawWeights !== 'object' || Array.isArray(rawWeights)) {
+      continue;
+    }
+    const persona = String(personaKey || '').trim().toLowerCase();
+    if (!persona) {
+      continue;
+    }
+    const weightMap: Record<string, number> = {};
+    for (const [rawType, rawValue] of Object.entries(rawWeights as Record<string, unknown>)) {
+      const type = String(rawType || '').trim().toLowerCase();
+      const numeric = Number(rawValue);
+      if (!type || !Number.isFinite(numeric) || numeric <= 0) {
+        continue;
+      }
+      weightMap[type] = Math.min(numeric, 100);
+    }
+    parsed[persona] = {
+      ...(fallback[persona] || {}),
+      ...weightMap,
+    };
+  }
+
+  for (const [persona, weights] of Object.entries(fallback)) {
+    if (!parsed[persona]) {
+      parsed[persona] = { ...weights };
+    }
+  }
+
   return parsed;
 }
 
@@ -342,6 +434,21 @@ export async function getEffectiveWorkspaceSettings(
       searchTypeWeights: { ...defaultSearchTypeWeights },
       searchRecencyHalfLifeDays: 14,
       searchSubpathBoostWeight: defaultMonorepoSubpathBoostWeight,
+      bundleTokenBudgetTotal: defaultBundleTokenBudgetTotal,
+      bundleBudgetGlobalWorkspacePct: defaultBundleBudgetGlobalWorkspacePct,
+      bundleBudgetGlobalUserPct: defaultBundleBudgetGlobalUserPct,
+      bundleBudgetProjectPct: defaultBundleBudgetProjectPct,
+      bundleBudgetRetrievalPct: defaultBundleBudgetRetrievalPct,
+      globalRulesRecommendMax: defaultGlobalRulesRecommendMax,
+      globalRulesWarnThreshold: defaultGlobalRulesWarnThreshold,
+      globalRulesSummaryEnabled: true,
+      globalRulesSummaryMinCount: defaultGlobalRulesSummaryMinCount,
+      globalRulesSelectionMode: 'score',
+      globalRulesRoutingEnabled: true,
+      globalRulesRoutingMode: 'hybrid',
+      globalRulesRoutingTopK: defaultGlobalRulesRoutingTopK,
+      globalRulesRoutingMinScore: defaultGlobalRulesRoutingMinScore,
+      personaWeights: parsePersonaWeights(defaultPersonaWeights),
       githubProjectKeyPrefix: DEFAULT_GITHUB_PREFIX,
       githubKeyPrefix: DEFAULT_GITHUB_PREFIX,
       localKeyPrefix: DEFAULT_LOCAL_PREFIX,
@@ -367,6 +474,9 @@ export async function getEffectiveWorkspaceSettings(
       decisionAutoConfirmMinConfidence: 0.9,
       decisionBatchSize: 25,
       decisionBackfillDays: 30,
+      activeWorkStaleDays: 14,
+      activeWorkAutoCloseEnabled: false,
+      activeWorkAutoCloseDays: 45,
       rawAccessMinRole: 'WRITER',
       retentionPolicyEnabled: false,
       auditRetentionDays: 365,
@@ -439,6 +549,59 @@ export async function getEffectiveWorkspaceSettings(
       Math.max(Number(settings.searchSubpathBoostWeight ?? defaultMonorepoSubpathBoostWeight), 1),
       10
     ),
+    bundleTokenBudgetTotal: parsePositiveInt(
+      settings.bundleTokenBudgetTotal,
+      defaultBundleTokenBudgetTotal
+    ),
+    bundleBudgetGlobalWorkspacePct: Math.min(
+      Math.max(
+        Number(settings.bundleBudgetGlobalWorkspacePct ?? defaultBundleBudgetGlobalWorkspacePct),
+        0
+      ),
+      1
+    ),
+    bundleBudgetGlobalUserPct: Math.min(
+      Math.max(Number(settings.bundleBudgetGlobalUserPct ?? defaultBundleBudgetGlobalUserPct), 0),
+      1
+    ),
+    bundleBudgetProjectPct: Math.min(
+      Math.max(Number(settings.bundleBudgetProjectPct ?? defaultBundleBudgetProjectPct), 0),
+      1
+    ),
+    bundleBudgetRetrievalPct: Math.min(
+      Math.max(Number(settings.bundleBudgetRetrievalPct ?? defaultBundleBudgetRetrievalPct), 0),
+      1
+    ),
+    globalRulesRecommendMax: parsePositiveInt(
+      settings.globalRulesRecommendMax,
+      defaultGlobalRulesRecommendMax
+    ),
+    globalRulesWarnThreshold: parsePositiveInt(
+      settings.globalRulesWarnThreshold,
+      defaultGlobalRulesWarnThreshold
+    ),
+    globalRulesSummaryEnabled: settings.globalRulesSummaryEnabled ?? true,
+    globalRulesSummaryMinCount: parsePositiveInt(
+      settings.globalRulesSummaryMinCount,
+      defaultGlobalRulesSummaryMinCount
+    ),
+    globalRulesSelectionMode: parseGlobalRulesSelectionMode(settings.globalRulesSelectionMode),
+    globalRulesRoutingEnabled: settings.globalRulesRoutingEnabled ?? true,
+    globalRulesRoutingMode: parseGlobalRulesRoutingMode(settings.globalRulesRoutingMode),
+    globalRulesRoutingTopK: Math.min(
+      Math.max(
+        parsePositiveInt(settings.globalRulesRoutingTopK, defaultGlobalRulesRoutingTopK),
+        1
+      ),
+      100
+    ),
+    globalRulesRoutingMinScore: clampFloat(
+      Number(settings.globalRulesRoutingMinScore ?? defaultGlobalRulesRoutingMinScore),
+      defaultGlobalRulesRoutingMinScore,
+      0,
+      1
+    ),
+    personaWeights: parsePersonaWeights(settings.personaWeights),
     githubProjectKeyPrefix:
       settings.githubProjectKeyPrefix ||
       settings.githubKeyPrefix ||
@@ -490,6 +653,9 @@ export async function getEffectiveWorkspaceSettings(
     ),
     decisionBatchSize: parsePositiveInt(settings.decisionBatchSize, 25),
     decisionBackfillDays: parsePositiveInt(settings.decisionBackfillDays, 30),
+    activeWorkStaleDays: parsePositiveInt(settings.activeWorkStaleDays, 14),
+    activeWorkAutoCloseEnabled: settings.activeWorkAutoCloseEnabled ?? false,
+    activeWorkAutoCloseDays: parsePositiveInt(settings.activeWorkAutoCloseDays, 45),
     rawAccessMinRole: parseProjectRole(settings.rawAccessMinRole, 'WRITER'),
     retentionPolicyEnabled: settings.retentionPolicyEnabled ?? false,
     auditRetentionDays: parsePositiveInt(settings.auditRetentionDays, 365),

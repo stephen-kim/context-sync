@@ -84,6 +84,9 @@ export function useAdminWorkspaceProjectActions(deps: WorkspaceProjectDeps) {
     memoryState.setDecisionAutoConfirmMinConfidence(settings.decision_auto_confirm_min_confidence ?? 0.9);
     memoryState.setDecisionBatchSize(settings.decision_batch_size ?? 25);
     memoryState.setDecisionBackfillDays(settings.decision_backfill_days ?? 30);
+    memoryState.setActiveWorkStaleDays(settings.active_work_stale_days ?? 14);
+    memoryState.setActiveWorkAutoCloseEnabled(settings.active_work_auto_close_enabled ?? false);
+    memoryState.setActiveWorkAutoCloseDays(settings.active_work_auto_close_days ?? 45);
     memoryState.setRawAccessMinRole(settings.raw_access_min_role ?? 'WRITER');
     workspaceState.setOidcSyncMode(settings.oidc_sync_mode ?? 'add_only');
     workspaceState.setOidcAllowAutoProvision(settings.oidc_allow_auto_provision ?? true);
@@ -111,6 +114,20 @@ export function useAdminWorkspaceProjectActions(deps: WorkspaceProjectDeps) {
     );
     workspaceState.setSearchRecencyHalfLifeDays(settings.search_recency_half_life_days ?? 14);
     workspaceState.setSearchSubpathBoostWeight(settings.search_subpath_boost_weight ?? 1.5);
+    workspaceState.setBundleTokenBudgetTotal(settings.bundle_token_budget_total ?? 3000);
+    workspaceState.setBundleBudgetGlobalWorkspacePct(settings.bundle_budget_global_workspace_pct ?? 0.15);
+    workspaceState.setBundleBudgetGlobalUserPct(settings.bundle_budget_global_user_pct ?? 0.1);
+    workspaceState.setBundleBudgetProjectPct(settings.bundle_budget_project_pct ?? 0.45);
+    workspaceState.setBundleBudgetRetrievalPct(settings.bundle_budget_retrieval_pct ?? 0.3);
+    workspaceState.setGlobalRulesRecommendMax(settings.global_rules_recommend_max ?? 5);
+    workspaceState.setGlobalRulesWarnThreshold(settings.global_rules_warn_threshold ?? 10);
+    workspaceState.setGlobalRulesSummaryEnabled(settings.global_rules_summary_enabled ?? true);
+    workspaceState.setGlobalRulesSummaryMinCount(settings.global_rules_summary_min_count ?? 8);
+    workspaceState.setGlobalRulesSelectionMode(settings.global_rules_selection_mode ?? 'score');
+    workspaceState.setGlobalRulesRoutingEnabled(settings.global_rules_routing_enabled ?? true);
+    workspaceState.setGlobalRulesRoutingMode(settings.global_rules_routing_mode ?? 'hybrid');
+    workspaceState.setGlobalRulesRoutingTopK(settings.global_rules_routing_top_k ?? 5);
+    workspaceState.setGlobalRulesRoutingMinScore(settings.global_rules_routing_min_score ?? 0.2);
     workspaceState.setRetentionPolicyEnabled(settings.retention_policy_enabled ?? false);
     workspaceState.setAuditRetentionDays(settings.audit_retention_days ?? 365);
     workspaceState.setRawRetentionDays(settings.raw_retention_days ?? 90);
@@ -240,6 +257,9 @@ export function useAdminWorkspaceProjectActions(deps: WorkspaceProjectDeps) {
         ),
         decision_batch_size: Math.min(Math.max(memoryState.decisionBatchSize || 1, 1), 2000),
         decision_backfill_days: Math.min(Math.max(memoryState.decisionBackfillDays || 1, 1), 3650),
+        active_work_stale_days: Math.min(Math.max(memoryState.activeWorkStaleDays || 1, 1), 3650),
+        active_work_auto_close_enabled: memoryState.activeWorkAutoCloseEnabled,
+        active_work_auto_close_days: Math.min(Math.max(memoryState.activeWorkAutoCloseDays || 1, 1), 3650),
         raw_access_min_role: memoryState.rawAccessMinRole,
         oidc_sync_mode: workspaceState.oidcSyncMode,
         oidc_allow_auto_provision: workspaceState.oidcAllowAutoProvision,
@@ -255,6 +275,47 @@ export function useAdminWorkspaceProjectActions(deps: WorkspaceProjectDeps) {
         search_subpath_boost_weight: Math.min(
           Math.max(workspaceState.searchSubpathBoostWeight || 1.5, 1),
           10
+        ),
+        bundle_token_budget_total: Math.min(
+          Math.max(workspaceState.bundleTokenBudgetTotal || 300, 300),
+          50000
+        ),
+        bundle_budget_global_workspace_pct: Math.min(
+          Math.max(workspaceState.bundleBudgetGlobalWorkspacePct || 0, 0),
+          1
+        ),
+        bundle_budget_global_user_pct: Math.min(
+          Math.max(workspaceState.bundleBudgetGlobalUserPct || 0, 0),
+          1
+        ),
+        bundle_budget_project_pct: Math.min(
+          Math.max(workspaceState.bundleBudgetProjectPct || 0, 0),
+          1
+        ),
+        bundle_budget_retrieval_pct: Math.min(
+          Math.max(workspaceState.bundleBudgetRetrievalPct || 0, 0),
+          1
+        ),
+        global_rules_recommend_max: Math.min(
+          Math.max(workspaceState.globalRulesRecommendMax || 1, 1),
+          1000
+        ),
+        global_rules_warn_threshold: Math.min(
+          Math.max(workspaceState.globalRulesWarnThreshold || 1, 1),
+          1000
+        ),
+        global_rules_summary_enabled: workspaceState.globalRulesSummaryEnabled,
+        global_rules_summary_min_count: Math.min(
+          Math.max(workspaceState.globalRulesSummaryMinCount || 1, 1),
+          1000
+        ),
+        global_rules_selection_mode: workspaceState.globalRulesSelectionMode,
+        global_rules_routing_enabled: workspaceState.globalRulesRoutingEnabled,
+        global_rules_routing_mode: workspaceState.globalRulesRoutingMode,
+        global_rules_routing_top_k: Math.min(Math.max(workspaceState.globalRulesRoutingTopK || 1, 1), 100),
+        global_rules_routing_min_score: Math.min(
+          Math.max(workspaceState.globalRulesRoutingMinScore || 0, 0),
+          1
         ),
         retention_policy_enabled: workspaceState.retentionPolicyEnabled,
         audit_retention_days: Math.min(Math.max(workspaceState.auditRetentionDays || 1, 1), 3650),
@@ -444,6 +505,18 @@ export function useAdminWorkspaceProjectActions(deps: WorkspaceProjectDeps) {
       return;
     }
     await callApi(`/v1/projects/${encodeURIComponent(projectKey)}/bootstrap`, {
+      method: 'POST',
+      body: JSON.stringify({
+        workspace_key: workspaceState.selectedWorkspace,
+      }),
+    });
+  }
+
+  async function recomputeProjectActiveWork(projectKey: string) {
+    if (!workspaceState.selectedWorkspace || !projectKey) {
+      return;
+    }
+    await callApi(`/v1/projects/${encodeURIComponent(projectKey)}/recompute-active-work`, {
       method: 'POST',
       body: JSON.stringify({
         workspace_key: workspaceState.selectedWorkspace,
@@ -653,6 +726,7 @@ export function useAdminWorkspaceProjectActions(deps: WorkspaceProjectDeps) {
     createWorkspace,
     createProject,
     bootstrapProjectContext,
+    recomputeProjectActiveWork,
     addProjectMember,
     updateProjectMemberRole,
     removeProjectMember,

@@ -14,6 +14,7 @@ type MeResponse = {
     name?: string | null;
     must_change_password: boolean;
     email_verified: boolean;
+    context_persona: 'neutral' | 'author' | 'reviewer' | 'architect';
     auth_method: 'session' | 'api_key' | 'env_admin';
     active_api_key_count: number;
     needs_welcome_setup: boolean;

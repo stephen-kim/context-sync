@@ -55,6 +55,8 @@ TESTING_PLAN.md
 # Local/testing artifacts
 setup_test/
 local/
+.release-gate/
+eval/runs/
 
 # VSCode extension build output and pack
 vscode-extension/dist/
@@ -65,3 +67,8 @@ hf_space/
 /scripts/*
 !/scripts/smoke-test.cjs
 !/scripts/sync-wiki.sh
+!/scripts/release-gate.sh
+!/scripts/qc/
+!/scripts/qc/*.sh
+!/scripts/eval/
+!/scripts/eval/*.ts

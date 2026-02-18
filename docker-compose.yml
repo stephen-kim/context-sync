@@ -32,6 +32,8 @@ services:
       MEMORY_CORE_API_KEY: ${MEMORY_CORE_API_KEY}
       MEMORY_CORE_API_KEYS: ${MEMORY_CORE_API_KEYS:-}
       MEMORY_CORE_SEED_ADMIN_KEY: ${MEMORY_CORE_SEED_ADMIN_KEY}
+      MEMORY_CORE_RUN_SEED: ${MEMORY_CORE_RUN_SEED:-true}
+      GITHUB_APP_WEBHOOK_SECRET: ${GITHUB_APP_WEBHOOK_SECRET:-}
       MEMORY_CORE_AUDIT_SLACK_WEBHOOK_URL: ${MEMORY_CORE_AUDIT_SLACK_WEBHOOK_URL:-}
       MEMORY_CORE_AUDIT_SLACK_ACTION_PREFIXES: ${MEMORY_CORE_AUDIT_SLACK_ACTION_PREFIXES:-}
       MEMORY_CORE_AUDIT_SLACK_DEFAULT_CHANNEL: ${MEMORY_CORE_AUDIT_SLACK_DEFAULT_CHANNEL:-}
@@ -58,7 +60,7 @@ services:
       [
         "sh",
         "-lc",
-        "pnpm db:migrate && pnpm db:seed && pnpm start:http",
+        "pnpm db:migrate && if [ \"$MEMORY_CORE_RUN_SEED\" = \"true\" ]; then pnpm db:seed; fi && pnpm start:http",
       ]
     healthcheck:
       test:

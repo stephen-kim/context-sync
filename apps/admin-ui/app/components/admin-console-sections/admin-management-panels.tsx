@@ -11,9 +11,12 @@ import { ProjectMembersPanel } from '../project-members-panel';
 import { ProjectsPanel } from '../projects-panel';
 import { ResolutionSettingsPanel } from '../resolution-settings-panel';
 import { WorkspaceMembersPanel } from '../workspace-members-panel';
+import { GlobalRulesPanel } from '../global-rules-panel';
 import type { Project } from '../../lib/types';
 import type { AdminAuthInviteApiKeyActions } from '../admin-console-domains/use-admin-auth-invite-api-key-actions';
 import type { AdminAuthInviteApiKeyState } from '../admin-console-domains/use-admin-auth-invite-api-key-state';
+import type { AdminGlobalRulesActions } from '../admin-console-domains/use-admin-global-rules-actions';
+import type { AdminGlobalRulesState } from '../admin-console-domains/use-admin-global-rules-state';
 import type { AdminIntegrationsOutboundActions } from '../admin-console-domains/use-admin-integrations-outbound-actions';
 import type { AdminIntegrationsOutboundState } from '../admin-console-domains/use-admin-integrations-outbound-state';
 import type { AdminMemorySearchActions } from '../admin-console-domains/use-admin-memory-search-actions';
@@ -30,6 +33,8 @@ type Props = {
   workspaceActions: AdminWorkspaceProjectActions;
   memoryState: AdminMemorySearchState;
   memoryActions: AdminMemorySearchActions;
+  globalRulesState: AdminGlobalRulesState;
+  globalRulesActions: AdminGlobalRulesActions;
   integrationsState: AdminIntegrationsOutboundState;
   integrationsActions: AdminIntegrationsOutboundActions;
 };
@@ -85,6 +90,12 @@ export function AdminManagementPanels(props: Props) {
         setDecisionBatchSize={props.memoryState.setDecisionBatchSize}
         decisionBackfillDays={props.memoryState.decisionBackfillDays}
         setDecisionBackfillDays={props.memoryState.setDecisionBackfillDays}
+        activeWorkStaleDays={props.memoryState.activeWorkStaleDays}
+        setActiveWorkStaleDays={props.memoryState.setActiveWorkStaleDays}
+        activeWorkAutoCloseEnabled={props.memoryState.activeWorkAutoCloseEnabled}
+        setActiveWorkAutoCloseEnabled={props.memoryState.setActiveWorkAutoCloseEnabled}
+        activeWorkAutoCloseDays={props.memoryState.activeWorkAutoCloseDays}
+        setActiveWorkAutoCloseDays={props.memoryState.setActiveWorkAutoCloseDays}
         rawAccessMinRole={props.memoryState.rawAccessMinRole}
         setRawAccessMinRole={props.memoryState.setRawAccessMinRole}
         searchDefaultMode={props.workspaceState.searchDefaultMode}
@@ -181,6 +192,67 @@ export function AdminManagementPanels(props: Props) {
         createDecisionKeywordPolicy={props.memoryActions.createDecisionKeywordPolicy}
         patchDecisionKeywordPolicy={props.memoryActions.patchDecisionKeywordPolicy}
         deleteDecisionKeywordPolicy={props.memoryActions.deleteDecisionKeywordPolicy}
+      />
+
+      <GlobalRulesPanel
+        selectedWorkspace={props.selectedWorkspace}
+        members={props.authState.workspaceMembers}
+        scope={props.globalRulesState.scope}
+        setScope={props.globalRulesState.setScope}
+        targetUserId={props.globalRulesState.targetUserId}
+        setTargetUserId={props.globalRulesState.setTargetUserId}
+        rules={props.globalRulesState.rules}
+        title={props.globalRulesState.title}
+        setTitle={props.globalRulesState.setTitle}
+        content={props.globalRulesState.content}
+        setContent={props.globalRulesState.setContent}
+        tags={props.globalRulesState.tags}
+        setTags={props.globalRulesState.setTags}
+        category={props.globalRulesState.category}
+        setCategory={props.globalRulesState.setCategory}
+        priority={props.globalRulesState.priority}
+        setPriority={props.globalRulesState.setPriority}
+        severity={props.globalRulesState.severity}
+        setSeverity={props.globalRulesState.setSeverity}
+        pinned={props.globalRulesState.pinned}
+        setPinned={props.globalRulesState.setPinned}
+        enabled={props.globalRulesState.enabled}
+        setEnabled={props.globalRulesState.setEnabled}
+        reason={props.globalRulesState.reason}
+        setReason={props.globalRulesState.setReason}
+        summaryPreview={props.globalRulesState.summaryPreview}
+        recommendMax={props.workspaceState.globalRulesRecommendMax}
+        warnThreshold={props.workspaceState.globalRulesWarnThreshold}
+        summaryEnabled={props.workspaceState.globalRulesSummaryEnabled}
+        summaryMinCount={props.workspaceState.globalRulesSummaryMinCount}
+        selectionMode={props.workspaceState.globalRulesSelectionMode}
+        routingEnabled={props.workspaceState.globalRulesRoutingEnabled}
+        routingMode={props.workspaceState.globalRulesRoutingMode}
+        routingTopK={props.workspaceState.globalRulesRoutingTopK}
+        routingMinScore={props.workspaceState.globalRulesRoutingMinScore}
+        bundleTokenBudgetTotal={props.workspaceState.bundleTokenBudgetTotal}
+        bundleBudgetGlobalWorkspacePct={props.workspaceState.bundleBudgetGlobalWorkspacePct}
+        bundleBudgetGlobalUserPct={props.workspaceState.bundleBudgetGlobalUserPct}
+        bundleBudgetProjectPct={props.workspaceState.bundleBudgetProjectPct}
+        bundleBudgetRetrievalPct={props.workspaceState.bundleBudgetRetrievalPct}
+        setBundleTokenBudgetTotal={props.workspaceState.setBundleTokenBudgetTotal}
+        setBundleBudgetGlobalWorkspacePct={props.workspaceState.setBundleBudgetGlobalWorkspacePct}
+        setBundleBudgetGlobalUserPct={props.workspaceState.setBundleBudgetGlobalUserPct}
+        setBundleBudgetProjectPct={props.workspaceState.setBundleBudgetProjectPct}
+        setBundleBudgetRetrievalPct={props.workspaceState.setBundleBudgetRetrievalPct}
+        setSummaryEnabled={props.workspaceState.setGlobalRulesSummaryEnabled}
+        setSummaryMinCount={props.workspaceState.setGlobalRulesSummaryMinCount}
+        setSelectionMode={props.workspaceState.setGlobalRulesSelectionMode}
+        setRoutingEnabled={props.workspaceState.setGlobalRulesRoutingEnabled}
+        setRoutingMode={props.workspaceState.setGlobalRulesRoutingMode}
+        setRoutingTopK={props.workspaceState.setGlobalRulesRoutingTopK}
+        setRoutingMinScore={props.workspaceState.setGlobalRulesRoutingMinScore}
+        createGlobalRule={props.globalRulesActions.createGlobalRule}
+        loadGlobalRules={props.globalRulesActions.loadGlobalRules}
+        patchGlobalRule={props.globalRulesActions.patchGlobalRule}
+        deleteGlobalRule={props.globalRulesActions.deleteGlobalRule}
+        summarizeGlobalRules={props.globalRulesActions.summarizeGlobalRules}
+        saveWorkspaceSettings={props.workspaceActions.saveWorkspaceSettings}
       />
 
       <DecisionsPanel
@@ -536,6 +608,7 @@ export function AdminManagementPanels(props: Props) {
         setProjectViewFilter={props.workspaceState.setProjectViewFilter}
         createProject={props.workspaceActions.createProject}
         bootstrapProjectContext={props.workspaceActions.bootstrapProjectContext}
+        recomputeProjectActiveWork={props.workspaceActions.recomputeProjectActiveWork}
         newProjectKey={props.workspaceState.newProjectKey}
         setNewProjectKey={props.workspaceState.setNewProjectKey}
         newProjectName={props.workspaceState.newProjectName}
@@ -574,6 +647,11 @@ export function AdminManagementPanels(props: Props) {
         selectedUserKeys={props.authState.selectedUserApiKeys}
         selfLabel={props.authState.selfApiKeyLabel}
         setSelfLabel={props.authState.setSelfApiKeyLabel}
+        contextPersona={props.authState.contextPersona}
+        setContextPersona={props.authState.setContextPersona}
+        recommendedPersona={props.memoryState.personaRecommendation?.recommended}
+        recommendedConfidence={props.memoryState.personaRecommendation?.confidence}
+        saveContextPersona={props.authActions.saveContextPersona}
         createSelfKey={props.authActions.createSelfApiKey}
         revokeSelfKey={props.authActions.revokeSelfApiKey}
         revokeUserKey={props.authActions.revokeSelectedUserApiKey}

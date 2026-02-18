@@ -1,6 +1,8 @@
 export {
   loginDomain,
   getAuthMeDomain,
+  getContextPersonaDomain,
+  updateContextPersonaDomain,
   logoutDomain,
   completeSetupDomain,
   reportGitCaptureInstalledDomain,

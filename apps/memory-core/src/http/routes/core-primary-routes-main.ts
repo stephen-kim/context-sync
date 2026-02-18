@@ -129,6 +129,27 @@ export function registerCorePrimaryMainRoutes(app: express.Express, service: Mem
     }
   });
 
+  app.get('/v1/context/persona-recommendation', async (req, res, next) => {
+    try {
+      const query = z
+        .object({
+          workspace_key: z.string().min(1),
+          project_key: z.string().min(1),
+          q: z.string().optional(),
+        })
+        .parse(req.query);
+      const data = await service.getContextPersonaRecommendation({
+        auth: (req as AuthedRequest).auth!,
+        workspaceKey: query.workspace_key,
+        projectKey: query.project_key,
+        q: query.q,
+      });
+      res.json(data);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.get('/v1/decisions', async (req, res, next) => {
     try {
       const query = z
@@ -276,6 +297,155 @@ export function registerCorePrimaryMainRoutes(app: express.Express, service: Mem
         projectKey: params.key,
       });
       res.status(201).json(data);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post('/v1/projects/:key/recompute-active-work', async (req, res, next) => {
+    try {
+      const params = z.object({ key: z.string().min(1) }).parse(req.params);
+      const body = z.object({ workspace_key: z.string().min(1) }).parse(req.body);
+      const data = await service.recomputeProjectActiveWork({
+        auth: (req as AuthedRequest).auth!,
+        workspaceKey: body.workspace_key,
+        projectKey: params.key,
+      });
+      res.status(201).json(data);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get('/v1/projects/:key/active-work', async (req, res, next) => {
+    try {
+      const params = z.object({ key: z.string().min(1) }).parse(req.params);
+      const query = z
+        .object({
+          workspace_key: z.string().min(1),
+          include_closed: z.coerce.boolean().optional(),
+          limit: z.coerce.number().int().positive().max(200).optional(),
+        })
+        .parse(req.query);
+      const data = await service.listProjectActiveWork({
+        auth: (req as AuthedRequest).auth!,
+        workspaceKey: query.workspace_key,
+        projectKey: params.key,
+        includeClosed: query.include_closed,
+        limit: query.limit,
+      });
+      res.json(data);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get('/v1/projects/:key/active-work/events', async (req, res, next) => {
+    try {
+      const params = z.object({ key: z.string().min(1) }).parse(req.params);
+      const query = z
+        .object({
+          workspace_key: z.string().min(1),
+          active_work_id: z.string().uuid().optional(),
+          limit: z.coerce.number().int().positive().max(500).optional(),
+        })
+        .parse(req.query);
+      const data = await service.listProjectActiveWorkEvents({
+        auth: (req as AuthedRequest).auth!,
+        workspaceKey: query.workspace_key,
+        projectKey: params.key,
+        activeWorkId: query.active_work_id,
+        limit: query.limit,
+      });
+      res.json(data);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post('/v1/active-work/:id/confirm', async (req, res, next) => {
+    try {
+      const params = z.object({ id: z.string().uuid() }).parse(req.params);
+      const body = z
+        .object({
+          workspace_key: z.string().min(1),
+          project_key: z.string().min(1),
+        })
+        .parse(req.body);
+      const data = await service.updateProjectActiveWorkStatus({
+        auth: (req as AuthedRequest).auth!,
+        workspaceKey: body.workspace_key,
+        projectKey: body.project_key,
+        activeWorkId: params.id,
+        action: 'confirm',
+      });
+      res.json(data);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post('/v1/active-work/:id/pin', async (req, res, next) => {
+    try {
+      const params = z.object({ id: z.string().uuid() }).parse(req.params);
+      const body = z
+        .object({
+          workspace_key: z.string().min(1),
+          project_key: z.string().min(1),
+        })
+        .parse(req.body);
+      const data = await service.updateProjectActiveWorkStatus({
+        auth: (req as AuthedRequest).auth!,
+        workspaceKey: body.workspace_key,
+        projectKey: body.project_key,
+        activeWorkId: params.id,
+        action: 'confirm',
+      });
+      res.json(data);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post('/v1/active-work/:id/close', async (req, res, next) => {
+    try {
+      const params = z.object({ id: z.string().uuid() }).parse(req.params);
+      const body = z
+        .object({
+          workspace_key: z.string().min(1),
+          project_key: z.string().min(1),
+        })
+        .parse(req.body);
+      const data = await service.updateProjectActiveWorkStatus({
+        auth: (req as AuthedRequest).auth!,
+        workspaceKey: body.workspace_key,
+        projectKey: body.project_key,
+        activeWorkId: params.id,
+        action: 'close',
+      });
+      res.json(data);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post('/v1/active-work/:id/reopen', async (req, res, next) => {
+    try {
+      const params = z.object({ id: z.string().uuid() }).parse(req.params);
+      const body = z
+        .object({
+          workspace_key: z.string().min(1),
+          project_key: z.string().min(1),
+        })
+        .parse(req.body);
+      const data = await service.updateProjectActiveWorkStatus({
+        auth: (req as AuthedRequest).auth!,
+        workspaceKey: body.workspace_key,
+        projectKey: body.project_key,
+        activeWorkId: params.id,
+        action: 'reopen',
+      });
+      res.json(data);
     } catch (error) {
       next(error);
     }

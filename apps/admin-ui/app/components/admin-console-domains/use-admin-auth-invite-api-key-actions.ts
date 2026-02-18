@@ -29,6 +29,7 @@ export function useAdminAuthInviteApiKeyActions(deps: AuthInviteApiKeyDeps) {
     newUserEmail,
     newUserName,
     selfApiKeyLabel,
+    contextPersona,
     setUsers,
     setWorkspaceMembers,
     setSelectedApiKeyUserId,
@@ -39,6 +40,7 @@ export function useAdminAuthInviteApiKeyActions(deps: AuthInviteApiKeyDeps) {
     setWorkspaceInviteEmail,
     setSelfApiKeys,
     setSelfApiKeyLabel,
+    setContextPersona,
     setGeneratedSelfApiKey,
     setLatestOneTimeUrl,
     setLatestOneTimeExpiresAt,
@@ -77,6 +79,23 @@ export function useAdminAuthInviteApiKeyActions(deps: AuthInviteApiKeyDeps) {
       `/v1/users/${encodeURIComponent(userId)}/api-keys`
     );
     setSelectedUserApiKeys(data.keys);
+  }
+
+  async function loadContextPersona() {
+    const data = await callApi<{ context_persona: 'neutral' | 'author' | 'reviewer' | 'architect' }>(
+      '/v1/auth/context-persona'
+    );
+    setContextPersona(data.context_persona);
+  }
+
+  async function saveContextPersona() {
+    await callApi('/v1/auth/context-persona', {
+      method: 'PUT',
+      body: JSON.stringify({
+        context_persona: contextPersona,
+      }),
+    });
+    await loadContextPersona();
   }
 
   async function createUser(event: FormEvent) {
@@ -218,6 +237,8 @@ export function useAdminAuthInviteApiKeyActions(deps: AuthInviteApiKeyDeps) {
     loadWorkspaceMembers,
     loadOwnApiKeys,
     loadUserApiKeys,
+    loadContextPersona,
+    saveContextPersona,
     createUser,
     addWorkspaceMember,
     createWorkspaceInvite,

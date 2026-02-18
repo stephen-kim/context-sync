@@ -10,6 +10,8 @@ import { useAdminIntegrationsOutboundActions } from './admin-console-domains/use
 import { useAdminIntegrationsOutboundState } from './admin-console-domains/use-admin-integrations-outbound-state';
 import { useAdminMemorySearchActions } from './admin-console-domains/use-admin-memory-search-actions';
 import { useAdminMemorySearchState } from './admin-console-domains/use-admin-memory-search-state';
+import { useAdminGlobalRulesActions } from './admin-console-domains/use-admin-global-rules-actions';
+import { useAdminGlobalRulesState } from './admin-console-domains/use-admin-global-rules-state';
 import { useAdminWorkspaceProjectActions } from './admin-console-domains/use-admin-workspace-project-actions';
 import { useAdminWorkspaceProjectState } from './admin-console-domains/use-admin-workspace-project-state';
 import { isSubprojectKey } from '../lib/utils';
@@ -26,6 +28,7 @@ export function AdminConsolePage(props: { logout: () => Promise<void> }) {
   const authState = useAdminAuthInviteApiKeyState();
   const workspaceState = useAdminWorkspaceProjectState();
   const memoryState = useAdminMemorySearchState();
+  const globalRulesState = useAdminGlobalRulesState();
   const integrationsState = useAdminIntegrationsOutboundState();
 
   async function authorizedFetch(path: string, init?: RequestInit): Promise<Response> {
@@ -105,6 +108,12 @@ export function AdminConsolePage(props: { logout: () => Promise<void> }) {
     setError,
   });
 
+  const globalRulesActions = useAdminGlobalRulesActions({
+    callApi,
+    selectedWorkspace: workspaceState.selectedWorkspace,
+    state: globalRulesState,
+  });
+
   const integrationsActions = useAdminIntegrationsOutboundActions({
     callApi,
     selectedWorkspace: workspaceState.selectedWorkspace,
@@ -146,7 +155,11 @@ export function AdminConsolePage(props: { logout: () => Promise<void> }) {
   }, [memoryState, selectedMemory]);
 
   async function initializeData() {
-    await Promise.all([workspaceActions.loadWorkspaces(), authActions.loadUsers()]);
+    await Promise.all([
+      workspaceActions.loadWorkspaces(),
+      authActions.loadUsers(),
+      authActions.loadContextPersona(),
+    ]);
   }
 
   useEffect(() => {
@@ -161,6 +174,7 @@ export function AdminConsolePage(props: { logout: () => Promise<void> }) {
     if (!apiKey || !workspaceState.selectedWorkspace || missingCoreUrl) {
       workspaceState.resetWorkspaceScopedState();
       memoryState.resetWorkspaceScopedState();
+      globalRulesState.resetWorkspaceScopedState();
       authState.resetWorkspaceScopedState();
       integrationsState.resetWorkspaceScopedState();
       return;
@@ -182,6 +196,7 @@ export function AdminConsolePage(props: { logout: () => Promise<void> }) {
       memoryActions.loadRawEvents(),
       memoryActions.loadAuditLogs(workspaceState.selectedWorkspace),
       memoryActions.loadAccessTimeline(workspaceState.selectedWorkspace),
+      globalRulesActions.loadGlobalRules(globalRulesState.scope, globalRulesState.targetUserId),
       integrationsActions.loadIntegrations(workspaceState.selectedWorkspace),
       integrationsActions.loadGithubInstallation(workspaceState.selectedWorkspace),
       integrationsActions.loadGithubRepos(workspaceState.selectedWorkspace),
@@ -204,6 +219,8 @@ export function AdminConsolePage(props: { logout: () => Promise<void> }) {
     apiKey,
     workspaceState.selectedWorkspace,
     integrationsState.selectedOutboundIntegration,
+    globalRulesState.scope,
+    globalRulesState.targetUserId,
     missingCoreUrl,
   ]);
 
@@ -275,13 +292,37 @@ export function AdminConsolePage(props: { logout: () => Promise<void> }) {
   useEffect(() => {
     if (!apiKey || !workspaceState.selectedWorkspace || !workspaceState.selectedProject || missingCoreUrl) {
       workspaceState.setMembers([]);
+      memoryState.setActiveWorkItems([]);
+      memoryState.setActiveWorkEvents([]);
       return;
     }
-    void workspaceActions
-      .loadMembers(workspaceState.selectedWorkspace, workspaceState.selectedProject)
-      .catch(() => {});
+    void Promise.all([
+      workspaceActions.loadMembers(workspaceState.selectedWorkspace, workspaceState.selectedProject),
+      memoryActions.loadProjectActiveWork(workspaceState.selectedProject),
+    ]).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiKey, workspaceState.selectedWorkspace, workspaceState.selectedProject, missingCoreUrl]);
+  }, [
+    apiKey,
+    workspaceState.selectedWorkspace,
+    workspaceState.selectedProject,
+    memoryState.activeWorkIncludeClosed,
+    missingCoreUrl,
+  ]);
+
+  useEffect(() => {
+    if (!apiKey || !workspaceState.selectedWorkspace || !workspaceState.selectedProject || missingCoreUrl) {
+      memoryState.setActiveWorkEvents([]);
+      return;
+    }
+    void memoryActions.loadProjectActiveWorkEvents(workspaceState.selectedProject).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    apiKey,
+    workspaceState.selectedWorkspace,
+    workspaceState.selectedProject,
+    memoryState.selectedActiveWorkId,
+    missingCoreUrl,
+  ]);
 
   useEffect(() => {
     if (!apiKey || !memoryState.selectedImportId || missingCoreUrl) {
@@ -351,6 +392,8 @@ export function AdminConsolePage(props: { logout: () => Promise<void> }) {
           workspaceActions={workspaceActions}
           memoryState={memoryState}
           memoryActions={memoryActions}
+          globalRulesState={globalRulesState}
+          globalRulesActions={globalRulesActions}
           integrationsState={integrationsState}
           integrationsActions={integrationsActions}
         />
@@ -360,6 +403,8 @@ export function AdminConsolePage(props: { logout: () => Promise<void> }) {
           selectedProject={workspaceState.selectedProject}
           projects={workspaceState.projects}
           workspaceState={workspaceState}
+          authState={authState}
+          authActions={authActions}
           memoryState={memoryState}
           memoryActions={memoryActions}
           selectedMemory={selectedMemory}

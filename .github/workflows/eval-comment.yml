@@ -1,0 +1,216 @@
+name: Context Bundle Eval Comment
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  eval-comment:
+    name: Eval + Sticky PR Comment
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      BASE_URL: http://localhost:8080
+      RELEASE_GATE_COMPOSE_FILE: docker-compose.dev.yml
+      RELEASE_GATE_COMPOSE_PROFILE: localdb
+      DATABASE_URL: postgres://claustrum:claustrum@postgres:5432/claustrum
+      MEMORY_CORE_API_KEY: eval-pr-api-key
+      MEMORY_CORE_SEED_ADMIN_KEY: eval-pr-seed-admin-key
+      MEMORY_CORE_RUN_SEED: "true"
+      NEXT_PUBLIC_MEMORY_CORE_URL: http://localhost:8080
+      GITHUB_APP_WEBHOOK_SECRET: eval-pr-webhook-secret
+
+    steps:
+      - name: Checkout PR HEAD
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Prepare CI env file
+        run: |
+          cp .env.example .env
+          cat >> .env <<'EOF'
+          DATABASE_URL=postgres://claustrum:claustrum@postgres:5432/claustrum
+          MEMORY_CORE_API_KEY=eval-pr-api-key
+          MEMORY_CORE_SEED_ADMIN_KEY=eval-pr-seed-admin-key
+          MEMORY_CORE_RUN_SEED=true
+          NEXT_PUBLIC_MEMORY_CORE_URL=http://localhost:8080
+          GITHUB_APP_WEBHOOK_SECRET=eval-pr-webhook-secret
+          EOF
+
+      - name: Run eval on PR HEAD
+        run: |
+          set -euo pipefail
+          mkdir -p eval/runs/pr-head
+          cleanup() {
+            docker compose -f "${RELEASE_GATE_COMPOSE_FILE}" --profile "${RELEASE_GATE_COMPOSE_PROFILE}" down -v --remove-orphans || true
+          }
+          trap cleanup EXIT
+          cleanup
+          docker compose -f "${RELEASE_GATE_COMPOSE_FILE}" --profile "${RELEASE_GATE_COMPOSE_PROFILE}" up -d postgres memory-core
+          for i in $(seq 1 90); do
+            if curl -fsS "${BASE_URL}/healthz" >/dev/null 2>&1; then
+              break
+            fi
+            sleep 2
+          done
+          curl -fsS "${BASE_URL}/healthz" >/dev/null
+          pnpm eval:bundle -- --base-url "${BASE_URL}" --out-dir eval/runs/pr-head --mask true --debug true
+
+      - name: Run eval on PR BASE (optional)
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          BASE_WORKTREE="$(dirname "$GITHUB_WORKSPACE")/claustrum-base"
+          git fetch --no-tags --prune origin "${{ github.base_ref }}"
+          rm -rf "${BASE_WORKTREE}" || true
+          git worktree add "${BASE_WORKTREE}" "origin/${{ github.base_ref }}"
+          pushd "${BASE_WORKTREE}" >/dev/null
+          cp .env.example .env || true
+          cat >> .env <<'EOF'
+          DATABASE_URL=postgres://claustrum:claustrum@postgres:5432/claustrum
+          MEMORY_CORE_API_KEY=eval-pr-api-key
+          MEMORY_CORE_SEED_ADMIN_KEY=eval-pr-seed-admin-key
+          MEMORY_CORE_RUN_SEED=true
+          NEXT_PUBLIC_MEMORY_CORE_URL=http://localhost:8080
+          GITHUB_APP_WEBHOOK_SECRET=eval-pr-webhook-secret
+          EOF
+          cleanup() {
+            docker compose -f docker-compose.dev.yml --profile localdb down -v --remove-orphans || true
+          }
+          trap cleanup EXIT
+          cleanup
+          docker compose -f docker-compose.dev.yml --profile localdb up -d postgres memory-core
+          for i in $(seq 1 90); do
+            if curl -fsS "${BASE_URL}/healthz" >/dev/null 2>&1; then
+              break
+            fi
+            sleep 2
+          done
+          curl -fsS "${BASE_URL}/healthz" >/dev/null
+          pnpm --dir "$GITHUB_WORKSPACE" eval:bundle -- --base-url "${BASE_URL}" --out-dir "$GITHUB_WORKSPACE/eval/runs/pr-base" --mask true --debug true
+          popd >/dev/null
+          git worktree remove "${BASE_WORKTREE}" --force || true
+
+      - name: Build eval diff (if base exists)
+        run: |
+          set -euo pipefail
+          if [ -f "eval/runs/pr-base/bundle.jsonl" ] && [ -f "eval/runs/pr-head/bundle.jsonl" ]; then
+            pnpm eval:diff -- --a eval/runs/pr-base --b eval/runs/pr-head --out-dir eval/runs/pr-head
+          else
+            echo "Base eval not available; skipping diff generation."
+          fi
+
+      - name: Build sticky comment body
+        run: |
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const runDir = path.resolve('eval/runs/pr-head');
+          const scoresPath = path.join(runDir, 'scores.json');
+          if (!fs.existsSync(scoresPath)) {
+            throw new Error(`scores.json not found: ${scoresPath}`);
+          }
+          const scores = JSON.parse(fs.readFileSync(scoresPath, 'utf8'));
+          const cases = Array.isArray(scores.cases) ? scores.cases : [];
+          const totalCases = cases.length;
+          const failed = cases.filter((c) => !c.passed);
+          const budgetWarn = cases.filter((c) => !c.token_within_budget);
+          const totalScore = cases.reduce((sum, c) => sum + (Number(c.score) || 0), 0);
+          const maxScore = totalCases * 100;
+          const topFailures = [...failed].sort((a, b) => (a.score || 0) - (b.score || 0)).slice(0, 5);
+
+          let diffSummary = '- Diff not available (base eval missing).';
+          const diffPath = path.join(runDir, 'diff.json');
+          if (fs.existsSync(diffPath)) {
+            const diff = JSON.parse(fs.readFileSync(diffPath, 'utf8'));
+            const summary = diff.summary || {};
+            diffSummary = `- changed: **${summary.changed || 0}**, added: **${summary.added || 0}**, removed: **${summary.removed || 0}**, unchanged: **${summary.unchanged || 0}**`;
+          }
+
+          const status = failed.length === 0 ? '✅' : '❌';
+          const lines = [];
+          lines.push('<!-- CLAUSTRUM_EVAL_COMMENT -->');
+          lines.push(`## Claustrum Context Bundle Eval ${status}`);
+          lines.push('');
+          lines.push(`- Total score: **${totalScore.toFixed(2)} / ${maxScore}**`);
+          lines.push(`- Failing cases: **${failed.length} / ${totalCases}**`);
+          lines.push('');
+          lines.push('### Top failures');
+          if (topFailures.length === 0) {
+            lines.push('- None');
+          } else {
+            for (const item of topFailures) {
+              const reasons = [];
+              if (!item.request_ok) reasons.push(`http:${item.status_code}`);
+              if (!item.checks?.must_types_ok) reasons.push('missing must types');
+              if (!item.checks?.must_fields_ok) reasons.push('missing must fields');
+              if (!item.checks?.must_keywords_ok) reasons.push('missing must keywords');
+              if (!item.checks?.must_not_types_ok) reasons.push('forbidden types present');
+              if (!item.token_within_budget) reasons.push('over budget');
+              lines.push(`- \`${item.id}\` (${item.score.toFixed(2)}): ${reasons.join(', ') || 'failed checks'}`);
+            }
+          }
+          lines.push('');
+          lines.push('### Budget warnings');
+          if (budgetWarn.length === 0) {
+            lines.push('- None');
+          } else {
+            for (const item of budgetWarn.slice(0, 10)) {
+              lines.push(`- \`${item.id}\`: ${item.token_estimate}/${item.budget}`);
+            }
+          }
+          lines.push('');
+          lines.push('### Diff summary');
+          lines.push(diffSummary);
+          lines.push('');
+          lines.push('### Artifacts');
+          lines.push(`- [Workflow run artifacts](${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID})`);
+          lines.push('');
+
+          fs.writeFileSync(path.join(runDir, 'pr-comment.md'), `${lines.join('\n')}\n`, 'utf8');
+          NODE
+
+      - name: Update sticky PR comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: claustrum-context-bundle-eval
+          path: eval/runs/pr-head/pr-comment.md
+
+      - name: Upload eval artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: claustrum-context-bundle-eval-${{ github.run_id }}
+          path: |
+            eval/runs/pr-head/**
+            eval/runs/pr-base/**
+          if-no-files-found: warn
+
+      - name: Cleanup containers/worktree
+        if: always()
+        run: |
+          docker compose -f "${RELEASE_GATE_COMPOSE_FILE}" --profile "${RELEASE_GATE_COMPOSE_PROFILE}" down -v --remove-orphans || true
+          BASE_WORKTREE="$(dirname "$GITHUB_WORKSPACE")/claustrum-base"
+          if [ -d "${BASE_WORKTREE}" ]; then
+            (cd "${BASE_WORKTREE}" && docker compose -f docker-compose.dev.yml --profile localdb down -v --remove-orphans || true)
+            git worktree remove "${BASE_WORKTREE}" --force || true
+          fi

@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import type {
   AccessTimelineItem,
+  ActiveWorkEventItem,
+  ActiveWorkItem,
   AuditLogItem,
   ContextBundleResponse,
   DecisionKeywordPolicy,
@@ -14,6 +16,7 @@ import type {
   RawEventType,
   RawMessageDetail,
   RawSearchMatch,
+  PersonaRecommendationResponse,
   StagedMemoryItem,
 } from '../../lib/types';
 
@@ -46,12 +49,21 @@ export function useAdminMemorySearchState() {
   const [decisionAutoConfirmMinConfidence, setDecisionAutoConfirmMinConfidence] = useState(0.9);
   const [decisionBatchSize, setDecisionBatchSize] = useState(25);
   const [decisionBackfillDays, setDecisionBackfillDays] = useState(30);
+  const [activeWorkStaleDays, setActiveWorkStaleDays] = useState(14);
+  const [activeWorkAutoCloseEnabled, setActiveWorkAutoCloseEnabled] = useState(false);
+  const [activeWorkAutoCloseDays, setActiveWorkAutoCloseDays] = useState(45);
   const [rawAccessMinRole, setRawAccessMinRole] = useState<ProjectRole>('WRITER');
   const [contextBundleQuery, setContextBundleQuery] = useState('');
   const [contextBundleCurrentSubpath, setContextBundleCurrentSubpath] = useState('');
   const [contextBundleBudget, setContextBundleBudget] = useState(1200);
   const [contextBundleDefault, setContextBundleDefault] = useState<ContextBundleResponse | null>(null);
   const [contextBundleDebug, setContextBundleDebug] = useState<ContextBundleResponse | null>(null);
+  const [personaRecommendation, setPersonaRecommendation] =
+    useState<PersonaRecommendationResponse | null>(null);
+  const [activeWorkItems, setActiveWorkItems] = useState<ActiveWorkItem[]>([]);
+  const [activeWorkEvents, setActiveWorkEvents] = useState<ActiveWorkEventItem[]>([]);
+  const [selectedActiveWorkId, setSelectedActiveWorkId] = useState('');
+  const [activeWorkIncludeClosed, setActiveWorkIncludeClosed] = useState(false);
 
   const [keywordPolicies, setKeywordPolicies] = useState<DecisionKeywordPolicy[]>([]);
   const [keywordPolicyName, setKeywordPolicyName] = useState('Default keywords');
@@ -148,12 +160,20 @@ export function useAdminMemorySearchState() {
     setDecisionAutoConfirmMinConfidence(0.9);
     setDecisionBatchSize(25);
     setDecisionBackfillDays(30);
+    setActiveWorkStaleDays(14);
+    setActiveWorkAutoCloseEnabled(false);
+    setActiveWorkAutoCloseDays(45);
     setRawAccessMinRole('WRITER');
     setContextBundleQuery('');
     setContextBundleCurrentSubpath('');
     setContextBundleBudget(1200);
     setContextBundleDefault(null);
     setContextBundleDebug(null);
+    setPersonaRecommendation(null);
+    setActiveWorkItems([]);
+    setActiveWorkEvents([]);
+    setSelectedActiveWorkId('');
+    setActiveWorkIncludeClosed(false);
     setKeywordPolicies([]);
     setDecisionProjectFilter('');
     setDecisionStatusFilter('draft');
@@ -259,6 +279,12 @@ export function useAdminMemorySearchState() {
     setDecisionBatchSize,
     decisionBackfillDays,
     setDecisionBackfillDays,
+    activeWorkStaleDays,
+    setActiveWorkStaleDays,
+    activeWorkAutoCloseEnabled,
+    setActiveWorkAutoCloseEnabled,
+    activeWorkAutoCloseDays,
+    setActiveWorkAutoCloseDays,
     rawAccessMinRole,
     setRawAccessMinRole,
     contextBundleQuery,
@@ -271,6 +297,16 @@ export function useAdminMemorySearchState() {
     setContextBundleDefault,
     contextBundleDebug,
     setContextBundleDebug,
+    personaRecommendation,
+    setPersonaRecommendation,
+    activeWorkItems,
+    setActiveWorkItems,
+    activeWorkEvents,
+    setActiveWorkEvents,
+    selectedActiveWorkId,
+    setSelectedActiveWorkId,
+    activeWorkIncludeClosed,
+    setActiveWorkIncludeClosed,
     keywordPolicies,
     setKeywordPolicies,
     keywordPolicyName,

@@ -95,6 +95,60 @@ enum DecisionDefaultStatus {
   confirmed
 }
 
+enum ContextPersona {
+  neutral
+  author
+  reviewer
+  architect
+}
+
+enum ActiveWorkStatus {
+  inferred
+  confirmed
+  closed
+}
+
+enum ActiveWorkEventType {
+  created
+  updated
+  stale_marked
+  stale_cleared
+  confirmed
+  closed
+  reopened
+}
+
+enum GlobalRuleScope {
+  workspace
+  user
+}
+
+enum GlobalRuleCategory {
+  policy
+  security
+  style
+  process
+  other
+}
+
+enum GlobalRuleSeverity {
+  low
+  medium
+  high
+}
+
+enum GlobalRulesSelectionMode {
+  score
+  recent
+  priority_only
+}
+
+enum GlobalRulesRoutingMode {
+  semantic
+  keyword
+  hybrid
+}
+
 enum SearchDefaultMode {
   hybrid
   keyword
@@ -264,6 +318,10 @@ model Workspace {
   githubWebhookEvents GithubWebhookEvent[]
   githubTeamMappings GithubTeamMapping[]
   monorepoSubprojectPolicies MonorepoSubprojectPolicy[]
+  globalRules       GlobalRule[]        @relation("WorkspaceGlobalRules")
+  globalRuleSummaries GlobalRuleSummary[] @relation("WorkspaceGlobalRuleSummaries")
+  activeWork        ActiveWork[]
+  activeWorkEvents  ActiveWorkEvent[]
   auditSinks        AuditSink[]
   auditDeliveries   AuditDeliveryQueue[]
   detectionRules    DetectionRule[]
@@ -304,6 +362,9 @@ model User {
   createdInvitations InvitationToken[] @relation("InvitationCreatedBy")
   identities        UserIdentity[]
   githubUserLinks   GithubUserLink[]
+  globalRules       GlobalRule[]        @relation("UserGlobalRules")
+  globalRuleSummaries GlobalRuleSummary[] @relation("UserGlobalRuleSummaries")
+  settings          UserSetting?
 
   @@map("users")
 }
@@ -339,6 +400,8 @@ model Project {
   stagedMemories StagedMemory[]
   auditLogs   AuditLog[]
   githubRepoLinks GithubRepoLink[]
+  activeWork  ActiveWork[]
+  activeWorkEvents ActiveWorkEvent[]
 
   @@unique([workspaceId, key])
   @@index([workspaceId, key])
@@ -413,6 +476,24 @@ model WorkspaceSettings {
   searchTypeWeights             Json         @default(dbgenerated("'{\"decision\":1.5,\"constraint\":1.35,\"goal\":1.2,\"activity\":1.05,\"active_work\":1.1,\"summary\":1.2,\"note\":1.0,\"problem\":1.0,\"caveat\":0.95}'::jsonb")) @map("search_type_weights")
   searchRecencyHalfLifeDays     Float        @default(14) @map("search_recency_half_life_days")
   searchSubpathBoostWeight      Float        @default(1.5) @map("search_subpath_boost_weight")
+  bundleTokenBudgetTotal        Int          @default(3000) @map("bundle_token_budget_total")
+  bundleBudgetGlobalWorkspacePct Float       @default(0.15) @map("bundle_budget_global_workspace_pct")
+  bundleBudgetGlobalUserPct     Float        @default(0.10) @map("bundle_budget_global_user_pct")
+  bundleBudgetProjectPct        Float        @default(0.45) @map("bundle_budget_project_pct")
+  bundleBudgetRetrievalPct      Float        @default(0.30) @map("bundle_budget_retrieval_pct")
+  globalRulesRecommendMax       Int          @default(5) @map("global_rules_recommend_max")
+  globalRulesWarnThreshold      Int          @default(10) @map("global_rules_warn_threshold")
+  globalRulesSummaryEnabled     Boolean      @default(true) @map("global_rules_summary_enabled")
+  globalRulesSummaryMinCount    Int          @default(8) @map("global_rules_summary_min_count")
+  globalRulesSelectionMode      GlobalRulesSelectionMode @default(score) @map("global_rules_selection_mode")
+  globalRulesRoutingEnabled     Boolean      @default(true) @map("global_rules_routing_enabled")
+  globalRulesRoutingMode        GlobalRulesRoutingMode @default(hybrid) @map("global_rules_routing_mode")
+  globalRulesRoutingTopK        Int          @default(5) @map("global_rules_routing_top_k")
+  globalRulesRoutingMinScore    Float        @default(0.2) @map("global_rules_routing_min_score")
+  personaWeights                Json         @default(dbgenerated("'{\"neutral\":{\"decision\":1.0,\"constraint\":1.0,\"active_work\":1.1,\"recent_activity\":1.0},\"author\":{\"active_work\":2.0,\"recent_activity\":1.5,\"decision\":0.8,\"constraint\":0.8},\"reviewer\":{\"constraint\":2.0,\"decision\":1.5,\"recent_activity\":1.0,\"active_work\":0.9},\"architect\":{\"decision\":2.0,\"constraint\":1.5,\"active_work\":1.0,\"recent_activity\":0.9}}'::jsonb")) @map("persona_weights")
+  activeWorkStaleDays           Int          @default(14) @map("active_work_stale_days")
+  activeWorkAutoCloseEnabled    Boolean      @default(false) @map("active_work_auto_close_enabled")
+  activeWorkAutoCloseDays       Int          @default(45) @map("active_work_auto_close_days")
   githubAutoCreateProjects      Boolean      @default(true) @map("github_auto_create_projects")
   githubAutoCreateSubprojects   Boolean      @default(false) @map("github_auto_create_subprojects")
   githubProjectKeyPrefix        String       @default("github:") @map("github_project_key_prefix")
@@ -462,6 +543,102 @@ model WorkspaceSettings {
   securityStreamSink            AuditSink?   @relation("WorkspaceSecurityStreamSink", fields: [securityStreamSinkId], references: [id], onDelete: SetNull)
 
   @@map("workspace_settings")
+}
+
+model GlobalRule {
+  id          String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  scope       GlobalRuleScope
+  workspaceId String?          @map("workspace_id")
+  userId      String?          @map("user_id")
+  title       String
+  content     String
+  category    GlobalRuleCategory @default(policy)
+  priority    Int              @default(3)
+  severity    GlobalRuleSeverity @default(medium)
+  pinned      Boolean          @default(false)
+  enabled     Boolean          @default(true)
+  tags        Json             @default(dbgenerated("'[]'::jsonb"))
+  usageCount  Int              @default(0) @map("usage_count")
+  lastRoutedAt DateTime?       @map("last_routed_at")
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+  workspace   Workspace?       @relation("WorkspaceGlobalRules", fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User?            @relation("UserGlobalRules", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, scope, enabled, updatedAt(sort: Desc)])
+  @@index([userId, scope, enabled, updatedAt(sort: Desc)])
+  @@map("global_rules")
+}
+
+model GlobalRuleSummary {
+  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId   String?         @map("workspace_id")
+  userId        String?         @map("user_id")
+  scope         GlobalRuleScope
+  summary       String
+  sourceRuleIds Json            @default(dbgenerated("'[]'::jsonb")) @map("source_rule_ids")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+  createdAt     DateTime        @default(now()) @map("created_at")
+  workspace     Workspace?      @relation("WorkspaceGlobalRuleSummaries", fields: [workspaceId], references: [id], onDelete: Cascade)
+  user          User?           @relation("UserGlobalRuleSummaries", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, scope, updatedAt(sort: Desc)])
+  @@index([userId, scope, updatedAt(sort: Desc)])
+  @@map("global_rule_summaries")
+}
+
+model UserSetting {
+  userId          String         @id @map("user_id")
+  contextPersona  ContextPersona @default(neutral) @map("context_persona")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_settings")
+}
+
+model ActiveWork {
+  id            String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId   String           @map("workspace_id")
+  projectId     String           @map("project_id")
+  title         String
+  evidenceIds   Json             @default(dbgenerated("'[]'::jsonb")) @map("evidence_ids")
+  confidence    Float            @default(0.0)
+  status        ActiveWorkStatus @default(inferred)
+  stale         Boolean          @default(false)
+  staleReason   String?          @map("stale_reason")
+  lastEvidenceAt DateTime?       @map("last_evidence_at") @db.Timestamptz(6)
+  closedAt      DateTime?        @map("closed_at") @db.Timestamptz(6)
+  lastUpdatedAt DateTime         @default(now()) @map("last_updated_at") @db.Timestamptz(6)
+  createdAt     DateTime         @default(now()) @map("created_at")
+  workspace     Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project       Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  events        ActiveWorkEvent[]
+
+  @@unique([workspaceId, projectId, title])
+  @@index([projectId, status, lastUpdatedAt(sort: Desc)])
+  @@index([projectId, stale, lastEvidenceAt(sort: Desc)])
+  @@index([workspaceId, projectId, status])
+  @@map("active_work")
+}
+
+model ActiveWorkEvent {
+  id            String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId   String             @map("workspace_id")
+  projectId     String             @map("project_id")
+  activeWorkId  String             @map("active_work_id") @db.Uuid
+  eventType     ActiveWorkEventType @map("event_type")
+  details       Json?              @default(dbgenerated("'{}'::jsonb"))
+  correlationId String?            @map("correlation_id")
+  createdAt     DateTime           @default(now()) @map("created_at")
+  workspace     Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project       Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  activeWork    ActiveWork         @relation(fields: [activeWorkId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt(sort: Desc)])
+  @@index([activeWorkId, createdAt(sort: Desc)])
+  @@index([workspaceId, correlationId])
+  @@map("active_work_events")
 }
 
 model DecisionKeywordPolicy {

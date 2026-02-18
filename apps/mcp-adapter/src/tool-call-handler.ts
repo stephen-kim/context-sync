@@ -143,6 +143,13 @@ export async function handleToolCall(
         ? (args.metadata as Record<string, unknown>)
         : undefined;
 
+    await preloadContextBundle({
+      deps,
+      workspaceKey: context.workspaceKey,
+      projectKey: context.projectKey,
+      currentSubpath: context.subprojectKey || undefined,
+    });
+
     const mergedMetadata = attachSubpathMetadata({
       mode: monorepoContextMode,
       metadata,
@@ -174,6 +181,14 @@ export async function handleToolCall(
     const queryProjectKey = projectOverride
       ? await deps.resolveProjectKeyOverride(projectOverride, context.workspaceKey)
       : context.projectKey;
+
+    await preloadContextBundle({
+      deps,
+      workspaceKey: context.workspaceKey,
+      projectKey: queryProjectKey,
+      query: args.q ? String(args.q) : undefined,
+      currentSubpath: context.subprojectKey || undefined,
+    });
 
     const query = new URLSearchParams({
       workspace_key: context.workspaceKey,
@@ -527,4 +542,32 @@ export async function handleToolCall(
   }
 
   return deps.textResult(`Unknown tool: ${toolName}`);
+}
+
+async function preloadContextBundle(args: {
+  deps: ToolHandlerDeps;
+  workspaceKey: string;
+  projectKey: string;
+  query?: string;
+  currentSubpath?: string;
+}): Promise<void> {
+  try {
+    const query = new URLSearchParams({
+      workspace_key: args.workspaceKey,
+      project_key: args.projectKey,
+      mode: 'default',
+      budget: '1200',
+    });
+    if (args.query && args.query.trim()) {
+      query.set('q', args.query.trim());
+    }
+    if (args.currentSubpath && args.currentSubpath.trim()) {
+      query.set('current_subpath', args.currentSubpath.trim());
+    }
+    await args.deps.requestJson<ContextBundleResponse>(`/v1/context/bundle?${query.toString()}`, {
+      method: 'GET',
+    });
+  } catch (error) {
+    args.deps.logger.warn('context bundle preload skipped', args.deps.toErrorMessage(error));
+  }
 }

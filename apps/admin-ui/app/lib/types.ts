@@ -73,6 +73,40 @@ export type ContextBundleResponse = {
     key: string;
     name: string;
   };
+  global?: {
+    workspace_rules: Array<{
+      id: string;
+      title: string;
+      content: string;
+      category: 'policy' | 'security' | 'style' | 'process' | 'other';
+      priority: number;
+      severity: 'low' | 'medium' | 'high';
+      pinned: boolean;
+      selected_reason?: string;
+      score?: number;
+    }>;
+    user_rules: Array<{
+      id: string;
+      title: string;
+      content: string;
+      category: 'policy' | 'security' | 'style' | 'process' | 'other';
+      priority: number;
+      severity: 'low' | 'medium' | 'high';
+      pinned: boolean;
+      selected_reason?: string;
+      score?: number;
+    }>;
+    workspace_summary?: string;
+    user_summary?: string;
+    routing: {
+      mode: 'semantic' | 'keyword' | 'hybrid';
+      q_used?: string;
+      selected_rule_ids: string[];
+      dropped_rule_ids: string[];
+      score_breakdown?: Array<Record<string, unknown>>;
+    };
+    warnings: Array<{ level: 'info' | 'warn'; message: string }>;
+  };
   snapshot: {
     summary: string;
     top_decisions: Array<{
@@ -90,9 +124,15 @@ export type ContextBundleResponse = {
     }>;
     active_work: Array<{
       id: string;
-      snippet: string;
-      created_at: string;
-      evidence_ref?: Record<string, unknown>;
+      title: string;
+      confidence: number;
+      status: string;
+      stale?: boolean;
+      stale_reason?: string | null;
+      last_evidence_at?: string | null;
+      closed_at?: string | null;
+      last_updated_at: string;
+      evidence_ids: string[];
     }>;
     recent_activity: Array<{
       id: string;
@@ -108,6 +148,7 @@ export type ContextBundleResponse = {
       type: string;
       snippet: string;
       score_breakdown?: Record<string, unknown>;
+      persona_weight?: number;
       evidence_ref?: Record<string, unknown>;
     }>;
   };
@@ -117,8 +158,37 @@ export type ContextBundleResponse = {
     monorepo_mode: string;
     current_subpath?: string;
     boosts_applied: Record<string, unknown>;
-    token_budget: Record<string, unknown>;
+    persona_applied?: 'neutral' | 'author' | 'reviewer' | 'architect';
+    persona_recommended?: {
+      recommended: 'neutral' | 'author' | 'reviewer' | 'architect';
+      confidence: number;
+      reasons: string[];
+      alternatives: Array<{ persona: 'neutral' | 'author' | 'reviewer' | 'architect'; score: number }>;
+    };
+    weight_adjustments?: {
+      persona_weights: Record<string, number>;
+      applied_to_types: Record<string, number>;
+    };
+    token_budget: {
+      total: number;
+      allocations: {
+        workspace_global: number;
+        user_global: number;
+        project_snapshot: number;
+        retrieval: number;
+      };
+      retrieval_limit: number;
+      per_item_chars: number;
+    };
+    active_work_candidates?: Array<Record<string, unknown>>;
+    active_work_policy?: {
+      stale_days: number;
+      auto_close_enabled: boolean;
+      auto_close_days: number;
+      confirmed_auto_close_exempt: boolean;
+    };
     decision_extractor_recent: Array<Record<string, unknown>>;
+    global_rules?: Record<string, unknown>;
   };
 };
 
@@ -131,6 +201,7 @@ export type GithubWebhookSyncMode = 'add_only' | 'add_and_remove';
 export type OidcClaimGroupsFormat = 'id' | 'name';
 export type RetentionMode = 'archive' | 'hard_delete';
 export type SecuritySeverity = 'low' | 'medium' | 'high';
+export type ContextPersona = 'neutral' | 'author' | 'reviewer' | 'architect';
 
 export type WorkspaceSettings = {
   workspace_key: string;
@@ -160,6 +231,21 @@ export type WorkspaceSettings = {
   search_type_weights: Record<string, number>;
   search_recency_half_life_days: number;
   search_subpath_boost_weight: number;
+  bundle_token_budget_total: number;
+  bundle_budget_global_workspace_pct: number;
+  bundle_budget_global_user_pct: number;
+  bundle_budget_project_pct: number;
+  bundle_budget_retrieval_pct: number;
+  global_rules_recommend_max: number;
+  global_rules_warn_threshold: number;
+  global_rules_summary_enabled: boolean;
+  global_rules_summary_min_count: number;
+  global_rules_selection_mode: 'score' | 'recent' | 'priority_only';
+  global_rules_routing_enabled: boolean;
+  global_rules_routing_mode: 'semantic' | 'keyword' | 'hybrid';
+  global_rules_routing_top_k: number;
+  global_rules_routing_min_score: number;
+  persona_weights: Record<string, Record<string, number>>;
   github_auto_create_projects: boolean;
   github_auto_create_subprojects: boolean;
   github_permission_sync_enabled: boolean;
@@ -193,6 +279,9 @@ export type WorkspaceSettings = {
   decision_auto_confirm_min_confidence: number;
   decision_batch_size: number;
   decision_backfill_days: number;
+  active_work_stale_days: number;
+  active_work_auto_close_enabled: boolean;
+  active_work_auto_close_days: number;
   raw_access_min_role: ProjectRole;
   retention_policy_enabled: boolean;
   audit_retention_days: number;
@@ -203,6 +292,25 @@ export type WorkspaceSettings = {
   security_stream_min_severity: SecuritySeverity;
   oidc_sync_mode: OidcSyncMode;
   oidc_allow_auto_provision: boolean;
+};
+
+export type GlobalRule = {
+  id: string;
+  scope: 'workspace' | 'user';
+  workspace_id?: string | null;
+  user_id?: string | null;
+  title: string;
+  content: string;
+  category: 'policy' | 'security' | 'style' | 'process' | 'other';
+  priority: number;
+  severity: 'low' | 'medium' | 'high';
+  pinned: boolean;
+  enabled: boolean;
+  tags: string[];
+  usage_count: number;
+  last_routed_at?: string;
+  created_at: string;
+  updated_at: string;
 };
 
 export type OidcProvider = {
@@ -669,6 +777,35 @@ export type DecisionKeywordPolicy = {
   enabled: boolean;
   created_at: string;
   updated_at: string;
+};
+
+export type ActiveWorkItem = {
+  id: string;
+  title: string;
+  confidence: number;
+  status: 'inferred' | 'confirmed' | 'closed';
+  stale: boolean;
+  stale_reason?: string | null;
+  last_evidence_at?: string | null;
+  last_updated_at: string;
+  closed_at?: string | null;
+  evidence_ids: string[];
+};
+
+export type ActiveWorkEventItem = {
+  id: string;
+  active_work_id: string;
+  event_type: 'created' | 'updated' | 'stale_marked' | 'stale_cleared' | 'confirmed' | 'closed' | 'reopened';
+  details: Record<string, unknown>;
+  correlation_id?: string | null;
+  created_at: string;
+};
+
+export type PersonaRecommendationResponse = {
+  recommended: ContextPersona;
+  confidence: number;
+  reasons: string[];
+  alternatives: Array<{ persona: ContextPersona; score: number }>;
 };
 
 export const MEMORY_TYPES = [

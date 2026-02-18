@@ -89,6 +89,34 @@ export function registerAuthRoutes(
     }
   });
 
+  app.get('/v1/auth/context-persona', async (req, res, next) => {
+    try {
+      const result = await service.getContextPersona({
+        auth: (req as AuthedRequest).auth!,
+      });
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.put('/v1/auth/context-persona', async (req, res, next) => {
+    try {
+      const body = z
+        .object({
+          context_persona: z.enum(['neutral', 'author', 'reviewer', 'architect']),
+        })
+        .parse(req.body);
+      const result = await service.updateContextPersona({
+        auth: (req as AuthedRequest).auth!,
+        contextPersona: body.context_persona,
+      });
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.post('/v1/auth/logout', async (req, res, next) => {
     try {
       const result = await service.logout({

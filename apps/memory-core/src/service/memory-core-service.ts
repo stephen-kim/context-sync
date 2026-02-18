@@ -74,6 +74,13 @@ import {
   listDecisionKeywordPoliciesHandler,
   updateDecisionKeywordPolicyHandler,
 } from './helpers/decision-keyword-policy-helpers.js';
+import {
+  createGlobalRuleHandler,
+  deleteGlobalRuleHandler,
+  listGlobalRulesHandler,
+  summarizeGlobalRulesHandler,
+  updateGlobalRuleHandler,
+} from './helpers/global-rules-helpers.js';
 import { runAuditRetentionSweepHandler } from './helpers/audit-retention-helpers.js';
 import {
   createAuditSinkHandler,
@@ -118,7 +125,17 @@ import {
 import { resolveProjectByPriority } from './helpers/resolve-project-helper.js';
 import { updateWorkspaceSettingsWithAudit } from './helpers/workspace-settings-helper.js';
 import { bootstrapProjectContextHandler } from './helpers/bootstrap-context-helpers.js';
-import { getContextBundleHandler } from './helpers/context-bundle-helpers.js';
+import {
+  getContextBundleHandler,
+  recommendContextPersona,
+} from './helpers/context-bundle-helpers.js';
+import {
+  listActiveWorkEventsHandler,
+  listActiveWorkHandler,
+  recomputeActiveWorkHandler,
+  recomputeActiveWorkNightly,
+  updateActiveWorkStatusHandler,
+} from './helpers/active-work-helpers.js';
 import {
   commitImportHandler,
   createImportUploadHandler,
@@ -216,6 +233,7 @@ import {
   completeSetupDomain,
   createSelfApiKeyDomain,
   createWorkspaceInviteDomain,
+  getContextPersonaDomain,
   getAuthMeDomain,
   getInviteDomain,
   listOwnApiKeysDomain,
@@ -225,6 +243,7 @@ import {
   reportGitCaptureInstalledDomain,
   resetUserApiKeysDomain,
   revokeApiKeyDomain,
+  updateContextPersonaDomain,
   viewOneTimeApiKeyDomain,
 } from './domains/auth-invite-api-key-domain.js';
 
@@ -381,6 +400,81 @@ export class MemoryCoreService {
     );
   }
 
+  async recomputeProjectActiveWork(args: {
+    auth: AuthContext;
+    workspaceKey: string;
+    projectKey: string;
+  }) {
+    const workspace = await this.getWorkspaceByKey(args.workspaceKey);
+    const project = await this.getProjectByKeys(args.workspaceKey, args.projectKey);
+    return recomputeActiveWorkHandler({
+      prisma: this.prisma,
+      auth: args.auth,
+      workspace,
+      project,
+      source: 'manual',
+      recordAudit: (auditArgs) => this.recordAudit(auditArgs),
+    });
+  }
+
+  async listProjectActiveWork(args: {
+    auth: AuthContext;
+    workspaceKey: string;
+    projectKey: string;
+    includeClosed?: boolean;
+    limit?: number;
+  }) {
+    const workspace = await this.getWorkspaceByKey(args.workspaceKey);
+    const project = await this.getProjectByKeys(args.workspaceKey, args.projectKey);
+    return listActiveWorkHandler({
+      prisma: this.prisma,
+      auth: args.auth,
+      workspace,
+      project,
+      includeClosed: args.includeClosed,
+      limit: args.limit,
+    });
+  }
+
+  async listProjectActiveWorkEvents(args: {
+    auth: AuthContext;
+    workspaceKey: string;
+    projectKey: string;
+    activeWorkId?: string;
+    limit?: number;
+  }) {
+    const workspace = await this.getWorkspaceByKey(args.workspaceKey);
+    const project = await this.getProjectByKeys(args.workspaceKey, args.projectKey);
+    return listActiveWorkEventsHandler({
+      prisma: this.prisma,
+      auth: args.auth,
+      workspace,
+      project,
+      activeWorkId: args.activeWorkId,
+      limit: args.limit,
+    });
+  }
+
+  async updateProjectActiveWorkStatus(args: {
+    auth: AuthContext;
+    workspaceKey: string;
+    projectKey: string;
+    activeWorkId: string;
+    action: 'confirm' | 'close' | 'reopen';
+  }) {
+    const workspace = await this.getWorkspaceByKey(args.workspaceKey);
+    const project = await this.getProjectByKeys(args.workspaceKey, args.projectKey);
+    return updateActiveWorkStatusHandler({
+      prisma: this.prisma,
+      auth: args.auth,
+      workspace,
+      project,
+      activeWorkId: args.activeWorkId,
+      action: args.action,
+      recordAudit: (auditArgs) => this.recordAudit(auditArgs),
+    });
+  }
+
   async createMemory(args: { auth: AuthContext; input: unknown }) {
     return createMemoryDomain(
       {
@@ -439,6 +533,36 @@ export class MemoryCoreService {
       },
       args
     );
+  }
+
+  async getContextPersonaRecommendation(args: {
+    auth: AuthContext;
+    workspaceKey: string;
+    projectKey: string;
+    q?: string;
+  }): Promise<{
+    recommended: 'neutral' | 'author' | 'reviewer' | 'architect';
+    confidence: number;
+    reasons: string[];
+    alternatives: Array<{
+      persona: 'neutral' | 'author' | 'reviewer' | 'architect';
+      score: number;
+    }>;
+  }> {
+    const workspace = await this.getWorkspaceByKey(args.workspaceKey);
+    const project = await this.getProjectByKeys(args.workspaceKey, args.projectKey);
+    await assertProjectAccess(this.prisma, args.auth, workspace.id, project.id, 'READER');
+    return recommendContextPersona({
+      query: args.q,
+      allowContextFallback: false,
+    });
+  }
+
+  async runActiveWorkNightly(args: { now: Date }) {
+    return recomputeActiveWorkNightly({
+      prisma: this.prisma,
+      now: args.now,
+    });
   }
 
   async listWorkspaces(args: { auth: AuthContext }) {
@@ -566,12 +690,48 @@ export class MemoryCoreService {
       name: string | null;
       must_change_password: boolean;
       email_verified: boolean;
+      context_persona: 'neutral' | 'author' | 'reviewer' | 'architect';
       auth_method: 'session' | 'api_key' | 'env_admin';
       active_api_key_count: number;
       needs_welcome_setup: boolean;
     };
   }> {
     return getAuthMeDomain(
+      {
+        prisma: this.prisma,
+        securityConfig: this.securityConfig,
+        getWorkspaceByKey: (workspaceKey) => this.getWorkspaceByKey(workspaceKey),
+        normalizeInviteProjectRoles: (input) => this.normalizeInviteProjectRoles(input),
+        resolveAuditWorkspaceForUser: (userId) => this.resolveAuditWorkspaceForUser(userId),
+        canManageUserKeys: (auth, targetUserId) => this.canManageUserKeys(auth, targetUserId),
+        recordAudit: (auditArgs) => this.recordAudit(auditArgs),
+      },
+      args
+    );
+  }
+
+  async getContextPersona(args: { auth: AuthContext }): Promise<{
+    context_persona: 'neutral' | 'author' | 'reviewer' | 'architect';
+  }> {
+    return getContextPersonaDomain(
+      {
+        prisma: this.prisma,
+        securityConfig: this.securityConfig,
+        getWorkspaceByKey: (workspaceKey) => this.getWorkspaceByKey(workspaceKey),
+        normalizeInviteProjectRoles: (input) => this.normalizeInviteProjectRoles(input),
+        resolveAuditWorkspaceForUser: (userId) => this.resolveAuditWorkspaceForUser(userId),
+        canManageUserKeys: (auth, targetUserId) => this.canManageUserKeys(auth, targetUserId),
+        recordAudit: (auditArgs) => this.recordAudit(auditArgs),
+      },
+      args
+    );
+  }
+
+  async updateContextPersona(args: {
+    auth: AuthContext;
+    contextPersona: unknown;
+  }): Promise<{ context_persona: 'neutral' | 'author' | 'reviewer' | 'architect' }> {
+    return updateContextPersonaDomain(
       {
         prisma: this.prisma,
         securityConfig: this.securityConfig,
@@ -2170,6 +2330,21 @@ export class MemoryCoreService {
       search_type_weights: effective.searchTypeWeights,
       search_recency_half_life_days: effective.searchRecencyHalfLifeDays,
       search_subpath_boost_weight: effective.searchSubpathBoostWeight,
+      bundle_token_budget_total: effective.bundleTokenBudgetTotal,
+      bundle_budget_global_workspace_pct: effective.bundleBudgetGlobalWorkspacePct,
+      bundle_budget_global_user_pct: effective.bundleBudgetGlobalUserPct,
+      bundle_budget_project_pct: effective.bundleBudgetProjectPct,
+      bundle_budget_retrieval_pct: effective.bundleBudgetRetrievalPct,
+      global_rules_recommend_max: effective.globalRulesRecommendMax,
+      global_rules_warn_threshold: effective.globalRulesWarnThreshold,
+      global_rules_summary_enabled: effective.globalRulesSummaryEnabled,
+      global_rules_summary_min_count: effective.globalRulesSummaryMinCount,
+      global_rules_selection_mode: effective.globalRulesSelectionMode,
+      global_rules_routing_enabled: effective.globalRulesRoutingEnabled,
+      global_rules_routing_mode: effective.globalRulesRoutingMode,
+      global_rules_routing_top_k: effective.globalRulesRoutingTopK,
+      global_rules_routing_min_score: effective.globalRulesRoutingMinScore,
+      persona_weights: effective.personaWeights,
       github_auto_create_projects: effective.githubAutoCreateProjects,
       github_auto_create_subprojects: effective.githubAutoCreateSubprojects,
       github_permission_sync_enabled: effective.githubPermissionSyncEnabled,
@@ -2203,6 +2378,9 @@ export class MemoryCoreService {
       decision_auto_confirm_min_confidence: effective.decisionAutoConfirmMinConfidence,
       decision_batch_size: effective.decisionBatchSize,
       decision_backfill_days: effective.decisionBackfillDays,
+      active_work_stale_days: effective.activeWorkStaleDays,
+      active_work_auto_close_enabled: effective.activeWorkAutoCloseEnabled,
+      active_work_auto_close_days: effective.activeWorkAutoCloseDays,
       raw_access_min_role: effective.rawAccessMinRole,
       retention_policy_enabled: effective.retentionPolicyEnabled,
       audit_retention_days: effective.auditRetentionDays,
@@ -2304,6 +2482,76 @@ export class MemoryCoreService {
     reason?: string;
   }) {
     return deleteDecisionKeywordPolicyHandler(this.getDecisionKeywordPolicyDeps(), args);
+  }
+
+  async listGlobalRules(args: {
+    auth: AuthContext;
+    workspaceKey: string;
+    scope: 'workspace' | 'user';
+    userId?: string;
+  }) {
+    return listGlobalRulesHandler(this.getGlobalRulesDeps(), args);
+  }
+
+  async createGlobalRule(args: {
+    auth: AuthContext;
+    workspaceKey: string;
+    input: {
+      scope?: 'workspace' | 'user';
+      user_id?: string;
+      title?: string;
+      content?: string;
+      category?: 'policy' | 'security' | 'style' | 'process' | 'other';
+      priority?: number;
+      severity?: 'low' | 'medium' | 'high';
+      pinned?: boolean;
+      enabled?: boolean;
+      tags?: string[];
+      reason?: string;
+    };
+  }) {
+    return createGlobalRuleHandler(this.getGlobalRulesDeps(), args);
+  }
+
+  async updateGlobalRule(args: {
+    auth: AuthContext;
+    workspaceKey: string;
+    ruleId: string;
+    input: {
+      scope?: 'workspace' | 'user';
+      user_id?: string;
+      title?: string;
+      content?: string;
+      category?: 'policy' | 'security' | 'style' | 'process' | 'other';
+      priority?: number;
+      severity?: 'low' | 'medium' | 'high';
+      pinned?: boolean;
+      enabled?: boolean;
+      tags?: string[];
+      reason?: string;
+    };
+  }) {
+    return updateGlobalRuleHandler(this.getGlobalRulesDeps(), args);
+  }
+
+  async deleteGlobalRule(args: {
+    auth: AuthContext;
+    workspaceKey: string;
+    ruleId: string;
+    reason?: string;
+  }) {
+    return deleteGlobalRuleHandler(this.getGlobalRulesDeps(), args);
+  }
+
+  async summarizeGlobalRules(args: {
+    auth: AuthContext;
+    workspaceKey: string;
+    scope: 'workspace' | 'user';
+    userId?: string;
+    mode: 'preview' | 'replace';
+    reason?: string;
+  }) {
+    return summarizeGlobalRulesHandler(this.getGlobalRulesDeps(), args);
   }
 
   async listDecisions(args: {
@@ -3487,6 +3735,9 @@ export class MemoryCoreService {
     decision_auto_confirm_min_confidence: number;
     decision_batch_size: number;
     decision_backfill_days: number;
+    active_work_stale_days: number;
+    active_work_auto_close_enabled: boolean;
+    active_work_auto_close_days: number;
   }) {
     return {
       workspace_key: settings.workspace_key,
@@ -3498,6 +3749,9 @@ export class MemoryCoreService {
       decision_auto_confirm_min_confidence: settings.decision_auto_confirm_min_confidence,
       decision_batch_size: settings.decision_batch_size,
       decision_backfill_days: settings.decision_backfill_days,
+      active_work_stale_days: settings.active_work_stale_days,
+      active_work_auto_close_enabled: settings.active_work_auto_close_enabled,
+      active_work_auto_close_days: settings.active_work_auto_close_days,
     };
   }
 
@@ -3524,6 +3778,23 @@ export class MemoryCoreService {
   }
 
   private getDecisionKeywordPolicyDeps() {
+    return {
+      prisma: this.prisma,
+      getWorkspaceByKey: (workspaceKey: string) => this.getWorkspaceByKey(workspaceKey),
+      recordAudit: (args: {
+        workspaceId: string;
+        projectId?: string;
+        workspaceKey?: string;
+        actorUserId: string;
+        actorUserEmail?: string;
+        action: string;
+        target: Record<string, unknown>;
+        correlationId?: string;
+      }) => this.recordAudit(args),
+    };
+  }
+
+  private getGlobalRulesDeps() {
     return {
       prisma: this.prisma,
       getWorkspaceByKey: (workspaceKey: string) => this.getWorkspaceByKey(workspaceKey),

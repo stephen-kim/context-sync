@@ -15,6 +15,9 @@ DB 원칙:
 - `memory-core`는 `DATABASE_URL`만 사용
 - `POSTGRES_*`는 로컬 compose postgres 초기화용
 
+전체 목록:
+- [환경변수 전체 레퍼런스](Environment-Variables.ko)
+
 최초 실행 최소 변수:
 - `DATABASE_URL`
 - `MEMORY_CORE_API_KEY`

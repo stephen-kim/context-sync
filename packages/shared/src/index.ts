@@ -135,6 +135,42 @@ export const defaultCheckoutDebounceSeconds = 30;
 export const defaultCheckoutDailyLimit = 200;
 export const defaultGithubCacheTtlSeconds = 900;
 export const defaultOutboundLocales = ['en', 'ko', 'ja', 'es', 'zh'] as const;
+export const defaultBundleTokenBudgetTotal = 3000;
+export const defaultBundleBudgetGlobalWorkspacePct = 0.15;
+export const defaultBundleBudgetGlobalUserPct = 0.1;
+export const defaultBundleBudgetProjectPct = 0.45;
+export const defaultBundleBudgetRetrievalPct = 0.3;
+export const defaultGlobalRulesRecommendMax = 5;
+export const defaultGlobalRulesWarnThreshold = 10;
+export const defaultGlobalRulesSummaryMinCount = 8;
+export const defaultGlobalRulesRoutingTopK = 5;
+export const defaultGlobalRulesRoutingMinScore = 0.2;
+export const defaultPersonaWeights = {
+  neutral: {
+    decision: 1.0,
+    constraint: 1.0,
+    active_work: 1.1,
+    recent_activity: 1.0,
+  },
+  author: {
+    active_work: 2.0,
+    recent_activity: 1.5,
+    decision: 0.8,
+    constraint: 0.8,
+  },
+  reviewer: {
+    constraint: 2.0,
+    decision: 1.5,
+    recent_activity: 1.0,
+    active_work: 0.9,
+  },
+  architect: {
+    decision: 2.0,
+    constraint: 1.5,
+    active_work: 1.0,
+    recent_activity: 0.9,
+  },
+} as const;
 export type OutboundLocale = (typeof defaultOutboundLocales)[number];
 export const defaultAutoConfirmAllowedEventTypes = ['post_commit', 'post_merge'] as const;
 export const defaultAutoConfirmKeywordAllowlist = [
@@ -220,6 +256,52 @@ export const workspaceSettingsSchema = z.object({
   }),
   search_recency_half_life_days: z.number().positive().max(3650).default(14),
   search_subpath_boost_weight: z.number().min(1).max(10).default(defaultMonorepoSubpathBoostWeight),
+  bundle_token_budget_total: z.number().int().positive().max(50000).default(defaultBundleTokenBudgetTotal),
+  bundle_budget_global_workspace_pct: z
+    .number()
+    .positive()
+    .max(1)
+    .default(defaultBundleBudgetGlobalWorkspacePct),
+  bundle_budget_global_user_pct: z
+    .number()
+    .min(0)
+    .max(1)
+    .default(defaultBundleBudgetGlobalUserPct),
+  bundle_budget_project_pct: z.number().positive().max(1).default(defaultBundleBudgetProjectPct),
+  bundle_budget_retrieval_pct: z.number().positive().max(1).default(defaultBundleBudgetRetrievalPct),
+  global_rules_recommend_max: z.number().int().positive().max(1000).default(defaultGlobalRulesRecommendMax),
+  global_rules_warn_threshold: z
+    .number()
+    .int()
+    .positive()
+    .max(1000)
+    .default(defaultGlobalRulesWarnThreshold),
+  global_rules_summary_enabled: z.boolean().default(true),
+  global_rules_summary_min_count: z
+    .number()
+    .int()
+    .positive()
+    .max(1000)
+    .default(defaultGlobalRulesSummaryMinCount),
+  global_rules_selection_mode: z.enum(['score', 'recent', 'priority_only']).default('score'),
+  global_rules_routing_enabled: z.boolean().default(true),
+  global_rules_routing_mode: z.enum(['semantic', 'keyword', 'hybrid']).default('hybrid'),
+  global_rules_routing_top_k: z
+    .number()
+    .int()
+    .positive()
+    .max(100)
+    .default(defaultGlobalRulesRoutingTopK),
+  global_rules_routing_min_score: z
+    .number()
+    .min(0)
+    .max(1)
+    .default(defaultGlobalRulesRoutingMinScore),
+  persona_weights: z
+    .record(z.string(), z.record(z.string(), z.number().positive().max(100)))
+    .default({
+      ...defaultPersonaWeights,
+    }),
   github_auto_create_projects: z.boolean().default(true),
   github_auto_create_subprojects: z.boolean().default(false),
   github_project_key_prefix: z.string().min(1).default('github:'),
@@ -268,6 +350,9 @@ export const workspaceSettingsSchema = z.object({
   decision_auto_confirm_min_confidence: z.number().min(0).max(1).default(0.9),
   decision_batch_size: z.number().int().positive().max(2000).default(25),
   decision_backfill_days: z.number().int().positive().max(3650).default(30),
+  active_work_stale_days: z.number().int().positive().max(3650).default(14),
+  active_work_auto_close_enabled: z.boolean().default(false),
+  active_work_auto_close_days: z.number().int().positive().max(3650).default(45),
   raw_access_min_role: z.enum(['OWNER', 'MAINTAINER', 'WRITER', 'READER']).default('WRITER'),
   retention_policy_enabled: z.boolean().default(false),
   audit_retention_days: z.number().int().positive().max(3650).default(365),
@@ -281,6 +366,40 @@ export const workspaceSettingsSchema = z.object({
 });
 
 export type WorkspaceSettingsInput = z.infer<typeof workspaceSettingsSchema>;
+
+export const globalRuleScopeSchema = z.enum(['workspace', 'user']);
+export type GlobalRuleScope = z.infer<typeof globalRuleScopeSchema>;
+
+export const globalRuleCategorySchema = z.enum(['policy', 'security', 'style', 'process', 'other']);
+export type GlobalRuleCategory = z.infer<typeof globalRuleCategorySchema>;
+
+export const globalRuleSeveritySchema = z.enum(['low', 'medium', 'high']);
+export type GlobalRuleSeverity = z.infer<typeof globalRuleSeveritySchema>;
+
+export const contextPersonaSchema = z.enum(['neutral', 'author', 'reviewer', 'architect']);
+export type ContextPersona = z.infer<typeof contextPersonaSchema>;
+
+export const contextPersonaInputSchema = z.object({
+  context_persona: contextPersonaSchema.default('neutral'),
+});
+
+export type ContextPersonaInput = z.infer<typeof contextPersonaInputSchema>;
+
+export const globalRuleSchema = z.object({
+  workspace_key: z.string().min(1),
+  scope: globalRuleScopeSchema,
+  user_id: z.string().min(1).optional(),
+  title: z.string().min(1).max(200),
+  content: z.string().min(1).max(10000),
+  category: globalRuleCategorySchema.default('policy'),
+  priority: z.coerce.number().int().min(1).max(5).default(3),
+  severity: globalRuleSeveritySchema.default('medium'),
+  pinned: z.boolean().default(false),
+  enabled: z.boolean().default(true),
+  tags: z.array(z.string().min(1).max(64)).max(100).default([]),
+});
+
+export type GlobalRuleInput = z.infer<typeof globalRuleSchema>;
 
 export const decisionKeywordPolicySchema = z.object({
   id: z.string().uuid().optional(),

@@ -37,6 +37,9 @@
     "watch": "tsx watch src/index.ts",
     "test:claustrum": "node scripts/smoke-test.cjs",
     "test:workspace": "pnpm -r --filter @claustrum/shared --filter @claustrum/memory-core --filter @claustrum/mcp-adapter --filter @claustrum/admin-ui test",
+    "eval:bundle": "tsx scripts/eval/run_bundle_eval.ts",
+    "eval:diff": "tsx scripts/eval/diff_bundle.ts",
+    "eval:report": "bash -lc 'latest=$(ls -1dt eval/runs/* 2>/dev/null | head -n1); if [ -z \"$latest\" ]; then echo \"No eval runs found\"; exit 1; fi; cat \"$latest/report.md\"'",
     "prepublishOnly": "npm run build && npm test"
   },
   "keywords": [

@@ -15,6 +15,9 @@ Application DB rule:
 - `memory-core` uses `DATABASE_URL` only.
 - `POSTGRES_*` are local compose postgres bootstrap vars only.
 
+Full reference:
+- [Environment Variables (Full Reference)](Environment-Variables)
+
 Minimal variables for first boot:
 - `DATABASE_URL`
 - `MEMORY_CORE_API_KEY`

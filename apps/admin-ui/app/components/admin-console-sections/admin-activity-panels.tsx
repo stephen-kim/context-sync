@@ -8,6 +8,8 @@ import { RawEventsPanel } from '../raw-events-panel';
 import { RawSearchPanel } from '../raw-search-panel';
 import { ContextDebugPanel } from '../context-debug-panel';
 import type { ImportItem, MemoryItem, Project } from '../../lib/types';
+import type { AdminAuthInviteApiKeyActions } from '../admin-console-domains/use-admin-auth-invite-api-key-actions';
+import type { AdminAuthInviteApiKeyState } from '../admin-console-domains/use-admin-auth-invite-api-key-state';
 import type { AdminMemorySearchActions } from '../admin-console-domains/use-admin-memory-search-actions';
 import type { AdminMemorySearchState } from '../admin-console-domains/use-admin-memory-search-state';
 import type { AdminWorkspaceProjectState } from '../admin-console-domains/use-admin-workspace-project-state';
@@ -17,6 +19,8 @@ type Props = {
   selectedProject: string;
   projects: Project[];
   workspaceState: AdminWorkspaceProjectState;
+  authState: AdminAuthInviteApiKeyState;
+  authActions: AdminAuthInviteApiKeyActions;
   memoryState: AdminMemorySearchState;
   memoryActions: AdminMemorySearchActions;
   selectedMemory: MemoryItem | null;
@@ -198,6 +202,20 @@ export function AdminActivityPanels(props: Props) {
         contextBundleDefault={props.memoryState.contextBundleDefault}
         contextBundleDebug={props.memoryState.contextBundleDebug}
         loadContextBundle={props.memoryActions.loadContextBundle}
+        personaRecommendation={props.memoryState.personaRecommendation}
+        recommendPersona={props.memoryActions.loadPersonaRecommendation}
+        contextPersona={props.authState.contextPersona}
+        setContextPersona={props.authState.setContextPersona}
+        saveContextPersona={props.authActions.saveContextPersona}
+        activeWorkItems={props.memoryState.activeWorkItems}
+        activeWorkEvents={props.memoryState.activeWorkEvents}
+        selectedActiveWorkId={props.memoryState.selectedActiveWorkId}
+        setSelectedActiveWorkId={props.memoryState.setSelectedActiveWorkId}
+        activeWorkIncludeClosed={props.memoryState.activeWorkIncludeClosed}
+        setActiveWorkIncludeClosed={props.memoryState.setActiveWorkIncludeClosed}
+        refreshActiveWork={() => props.memoryActions.loadProjectActiveWork(props.selectedProject)}
+        refreshActiveWorkEvents={() => props.memoryActions.loadProjectActiveWorkEvents(props.selectedProject)}
+        updateActiveWorkStatus={props.memoryActions.updateProjectActiveWorkStatus}
       />
     </>
   );

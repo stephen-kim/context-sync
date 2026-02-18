@@ -19,7 +19,10 @@ Core principles:
 ## Read Next
 
 - [Installation](Installation)
+- [Environment Variables (Full Reference)](Environment-Variables)
 - [Dependency Management](dependency-management)
+- [CI](ci)
+- [Release Gate](release-gate)
 - [Operations](Operations)
 - [Security and MCP I/O](Security-and-MCP-IO)
 - [OIDC SSO](OIDC-SSO)
@@ -37,6 +40,11 @@ Core principles:
 - [Monorepo Split Policy](monorepo-split-policy)
 - [Slack Audit Integration](Slack-Audit)
 - [Outbound Locales and Prompt Tuning](Outbound-Locales)
+- [Persona](persona)
+- [Active Work Stale / Auto-close](active-work-stale)
+- [Active Work Timeline](active-work-timeline)
+- [Context Debug](context-debug)
+- [Context Bundle Eval](context-bundle-eval)
 - [Release Notes](Release-Notes)
 - [Installation (Korean)](Installation.ko)
 

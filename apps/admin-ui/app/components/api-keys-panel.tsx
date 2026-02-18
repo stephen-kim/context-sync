@@ -1,7 +1,7 @@
 'use client';
 
 import type { FormEvent } from 'react';
-import type { ApiKeyItem, WorkspaceMember } from '../lib/types';
+import type { ApiKeyItem, ContextPersona, WorkspaceMember } from '../lib/types';
 import {
   Badge,
   Button,
@@ -28,6 +28,11 @@ type Props = {
   selectedUserKeys: ApiKeyItem[];
   selfLabel: string;
   setSelfLabel: (value: string) => void;
+  contextPersona: ContextPersona;
+  setContextPersona: (value: ContextPersona) => void;
+  recommendedPersona?: ContextPersona;
+  recommendedConfidence?: number;
+  saveContextPersona: () => void | Promise<void>;
   createSelfKey: (event: FormEvent) => void | Promise<void>;
   revokeSelfKey: (apiKeyId: string) => void | Promise<void>;
   revokeUserKey: (apiKeyId: string) => void | Promise<void>;
@@ -53,6 +58,30 @@ export function ApiKeysPanel(props: Props) {
             <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               Profile API Keys
             </h3>
+            <div className="row">
+              <Select
+                value={props.contextPersona}
+                onChange={(event) =>
+                  props.setContextPersona(event.target.value as ContextPersona)
+                }
+              >
+                <option value="neutral">neutral</option>
+                <option value="author">author</option>
+                <option value="reviewer">reviewer</option>
+                <option value="architect">architect</option>
+              </Select>
+              {props.recommendedPersona ? (
+                <div className="md:col-span-2 muted">
+                  Recommended persona: <Badge>{props.recommendedPersona}</Badge>{' '}
+                  {typeof props.recommendedConfidence === 'number'
+                    ? `(confidence ${props.recommendedConfidence.toFixed(2)})`
+                    : ''}
+                </div>
+              ) : null}
+              <Button type="button" className="md:col-span-2" onClick={() => void props.saveContextPersona()}>
+                Save Context Persona
+              </Button>
+            </div>
             <form className="row" onSubmit={props.createSelfKey}>
               <Input
                 value={props.selfLabel}

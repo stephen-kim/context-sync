@@ -5,23 +5,30 @@ on:
     branches:
       - main
   pull_request:
-  workflow_dispatch:
 
 jobs:
-  verify:
+  release-gate:
+    name: Release Gate
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      BASE_URL: http://localhost:8080
+      RELEASE_GATE_RESET_DB: "true"
+      RELEASE_GATE_COMPOSE_FILE: docker-compose.dev.yml
+      RELEASE_GATE_COMPOSE_PROFILE: localdb
+      RELEASE_GATE_SKIP_PRECHECKS: "true"
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
           version: 9.12.3
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: pnpm
@@ -29,11 +36,44 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Prepare CI env
+        run: |
+          cp .env.example .env
+          cat >> .env <<'EOF'
+          DATABASE_URL=postgres://claustrum:claustrum@postgres:5432/claustrum
+          MEMORY_CORE_API_KEY=release-gate-api-key
+          MEMORY_CORE_SEED_ADMIN_KEY=release-gate-seed-admin-key
+          NEXT_PUBLIC_MEMORY_CORE_URL=http://localhost:8080
+          GITHUB_APP_WEBHOOK_SECRET=release-gate-webhook-secret
+          EOF
+
       - name: Lint
         run: pnpm lint
 
-      - name: Build
-        run: pnpm build
-
       - name: Test
         run: pnpm test
+
+      - name: Run release gate QC
+        run: ./scripts/release-gate.sh
+
+      - name: Capture failure logs
+        if: failure()
+        run: |
+          mkdir -p .release-gate-artifacts
+          docker compose -f "${RELEASE_GATE_COMPOSE_FILE}" --profile "${RELEASE_GATE_COMPOSE_PROFILE}" logs --no-color memory-core \
+            | tail -n 200 \
+            | sed -E 's/(Initial password \(shown once\): ).+/\1***MASKED***/g' \
+            | sed -E 's/(api[_-]?key["=: ]+)[^ ,"]+/\1***MASKED***/gi' \
+            > .release-gate-artifacts/memory-core.log
+
+      - name: Upload failure logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-gate-logs
+          path: .release-gate-artifacts/memory-core.log
+          if-no-files-found: ignore
+
+      - name: Teardown compose
+        if: always()
+        run: docker compose -f "${RELEASE_GATE_COMPOSE_FILE}" --profile "${RELEASE_GATE_COMPOSE_PROFILE}" down -v --remove-orphans
