@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 47% 8%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 10%;
+    --card-foreground: 210 40% 98%;
+    --primary: 192 80% 52%;
+    --primary-foreground: 222 47% 11%;
+    --secondary: 217 33% 18%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 33% 16%;
+    --muted-foreground: 215 20% 67%;
+    --accent: 215 27% 22%;
+    --accent-foreground: 210 40% 98%;
+    --border: 216 34% 22%;
+    --input: 216 34% 22%;
+    --ring: 192 80% 52%;
+    --radius: 0.75rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html,
+  body {
+    @apply min-h-full;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    background-image:
+      radial-gradient(circle at 0% 0%, rgba(56, 189, 248, 0.15) 0%, rgba(56, 189, 248, 0) 36%),
+      radial-gradient(circle at 85% 10%, rgba(20, 184, 166, 0.18) 0%, rgba(20, 184, 166, 0) 40%);
+  }
+
+  a {
+    @apply text-primary hover:text-primary/80;
+  }
+}
+
+@layer components {
+  .container-docs {
+    @apply mx-auto max-w-7xl px-4 py-6 md:px-8;
+  }
+
+  .panel {
+    @apply rounded-xl border border-border bg-card/80 shadow-panel backdrop-blur;
+  }
+
+  .panel-body {
+    @apply p-5;
+  }
+
+  .title {
+    @apply text-2xl font-bold tracking-tight md:text-3xl;
+  }
+
+  .subtitle {
+    @apply text-sm text-muted-foreground;
+  }
+
+  .button-link {
+    @apply inline-flex items-center rounded-md border border-input bg-background px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground;
+  }
+
+  .prose-docs {
+    @apply prose prose-invert max-w-none prose-headings:scroll-mt-24 prose-a:text-primary prose-pre:border prose-pre:border-border prose-pre:bg-muted/30;
+  }
+}

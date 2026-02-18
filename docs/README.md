@@ -1,23 +1,25 @@
 # Docs Structure
 
-This repository now keeps detailed documentation in `docs/wiki/`.
+This repository keeps detailed documentation in `docs/content/` and publishes it via GitHub Pages (`apps/docs-site`).
 
 Primary sources:
 - `docs/architecture.md`
-- `docs/wiki/Home.md`
-- `docs/wiki/Installation.md`
-- `docs/wiki/Operations.md`
-- `docs/wiki/Security-and-MCP-IO.md`
-- `docs/wiki/Release-Notes.md`
+- `docs/content/Home.md`
+- `docs/content/Installation.md`
+- `docs/content/Operations.md`
+- `docs/content/Security-and-MCP-IO.md`
+- `docs/content/Release-Notes.md`
 
 Korean counterparts:
-- `docs/wiki/Home.ko.md`
-- `docs/wiki/Installation.ko.md`
-- `docs/wiki/Operations.ko.md`
-- `docs/wiki/Security-and-MCP-IO.ko.md`
-- `docs/wiki/Release-Notes.ko.md`
+- `docs/content/Home.ko.md`
+- `docs/content/Installation.ko.md`
+- `docs/content/Operations.ko.md`
+- `docs/content/Security-and-MCP-IO.ko.md`
+- `docs/content/Release-Notes.ko.md`
 
-GitHub Wiki can be synced from these files.
+Docs site app:
+- `apps/docs-site`
 
-Command:
-- `pnpm wiki:sync`
+Commands:
+- `pnpm docs:dev`
+- `pnpm docs:build`

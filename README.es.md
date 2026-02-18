@@ -32,15 +32,15 @@ Claustrum convierte eso en un sistema de memoria compartido y consultable para e
 - **Shared Package**: esquemas, tipos y utilidades compartidas.
 
 
-## Documentación (Wiki-first)
+## Documentación (Pages-first)
 
-Este README es intencionalmente breve. La configuración y operación detalladas están en la Wiki.
+Este README es intencionalmente breve. La configuración y operación detalladas se publican en GitHub Pages y se gestionan desde `docs/content`.
 
-- [GitHub Wiki](https://github.com/stephen-kim/claustrum/wiki)
-- [Wiki Home (EN)](docs/wiki/Home.md)
-- [Installation (EN)](docs/wiki/Installation.md)
-- [Operations (EN)](docs/wiki/Operations.md)
-- [Security and MCP I/O (EN)](docs/wiki/Security-and-MCP-IO.md)
+- [Docs Site (GitHub Pages)](https://stephen-kim.github.io/claustrum/)
+- [Docs Source Home (EN)](docs/content/Home.md)
+- [Installation (EN)](docs/content/Installation.md)
+- [Operations (EN)](docs/content/Operations.md)
+- [Security and MCP I/O (EN)](docs/content/Security-and-MCP-IO.md)
 - [Architecture](docs/architecture.md)
 
 
@@ -48,6 +48,7 @@ Este README es intencionalmente breve. La configuración y operación detalladas
 
 ```text
 apps/
+  docs-site/
   memory-core/
   mcp-adapter/
   admin-ui/

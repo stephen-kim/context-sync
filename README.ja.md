@@ -32,15 +32,15 @@ Claustrum はこれをチームで共有できる検索可能なメモリシス�
 - **Shared Package**: 共通スキーマ、型、ユーティリティ
 
 
-## ドキュメント方針（Wiki優先）
+## ドキュメント方針（Pages優先）
 
-この README は概要のみです。詳細なセットアップ、設定、運用手順は Wiki にあります。
+この README は概要のみです。詳細なセットアップ、設定、運用手順は GitHub Pages で公開し、ソースは `docs/content` で管理します。
 
-- [GitHub Wiki](https://github.com/stephen-kim/claustrum/wiki)
-- [Wiki Home (EN)](docs/wiki/Home.md)
-- [Installation (EN)](docs/wiki/Installation.md)
-- [Operations (EN)](docs/wiki/Operations.md)
-- [Security and MCP I/O (EN)](docs/wiki/Security-and-MCP-IO.md)
+- [Docs Site (GitHub Pages)](https://stephen-kim.github.io/claustrum/)
+- [Docs Source Home (EN)](docs/content/Home.md)
+- [Installation (EN)](docs/content/Installation.md)
+- [Operations (EN)](docs/content/Operations.md)
+- [Security and MCP I/O (EN)](docs/content/Security-and-MCP-IO.md)
 - [Architecture](docs/architecture.md)
 
 
@@ -48,6 +48,7 @@ Claustrum はこれをチームで共有できる検索可能なメモリシス�
 
 ```text
 apps/
+  docs-site/
   memory-core/
   mcp-adapter/
   admin-ui/

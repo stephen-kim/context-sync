@@ -34,18 +34,18 @@ Claustrum turns that into a shared, queryable memory system for teams.
 - **Shared Package**: schemas/types/utilities used across apps.
 
 
-## Documentation (Wiki-first)
+## Documentation (Pages-first)
 
-This README is intentionally short. Detailed setup/config/operations live in the Wiki.
+This README is intentionally short. Detailed setup/config/operations are published on GitHub Pages and sourced from `docs/content`.
 
-- [GitHub Wiki](https://github.com/stephen-kim/claustrum/wiki)
-- [Wiki Home (EN)](docs/wiki/Home.md)
-- [Installation (EN)](docs/wiki/Installation.md)
-- [Operations (EN)](docs/wiki/Operations.md)
-- [Security and MCP I/O (EN)](docs/wiki/Security-and-MCP-IO.md)
-- [Onboarding (EN)](docs/wiki/Onboarding.md)
-- [API Keys and Security (EN)](docs/wiki/API-Keys-and-Security.md)
-- [Outbound Locales and Prompt Tuning (EN)](docs/wiki/Outbound-Locales.md)
+- [Docs Site (GitHub Pages)](https://stephen-kim.github.io/claustrum/)
+- [Docs Source Home (EN)](docs/content/Home.md)
+- [Installation (EN)](docs/content/Installation.md)
+- [Operations (EN)](docs/content/Operations.md)
+- [Security and MCP I/O (EN)](docs/content/Security-and-MCP-IO.md)
+- [Onboarding (EN)](docs/content/Onboarding.md)
+- [API Keys and Security (EN)](docs/content/API-Keys-and-Security.md)
+- [Outbound Locales and Prompt Tuning (EN)](docs/content/Outbound-Locales.md)
 - [Architecture](docs/architecture.md)
 
 
@@ -53,6 +53,7 @@ This README is intentionally short. Detailed setup/config/operations live in the
 
 ```text
 apps/
+  docs-site/
   memory-core/
   mcp-adapter/
   admin-ui/

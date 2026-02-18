@@ -32,15 +32,15 @@ Claustrum 将这些分散信息变成团队可共享、可检索的记忆系统�
 - **Shared Package**: 共享 schema、类型与工具
 
 
-## 文档策略（以 Wiki 为主）
+## 文档策略（以 Pages 为主）
 
-本 README 仅保留概要。详细安装、配置与运维文档请查看 Wiki。
+本 README 仅保留概要。详细安装、配置与运维文档发布在 GitHub Pages，源文件位于 `docs/content`。
 
-- [GitHub Wiki](https://github.com/stephen-kim/claustrum/wiki)
-- [Wiki Home (EN)](docs/wiki/Home.md)
-- [Installation (EN)](docs/wiki/Installation.md)
-- [Operations (EN)](docs/wiki/Operations.md)
-- [Security and MCP I/O (EN)](docs/wiki/Security-and-MCP-IO.md)
+- [Docs Site (GitHub Pages)](https://stephen-kim.github.io/claustrum/)
+- [Docs Source Home (EN)](docs/content/Home.md)
+- [Installation (EN)](docs/content/Installation.md)
+- [Operations (EN)](docs/content/Operations.md)
+- [Security and MCP I/O (EN)](docs/content/Security-and-MCP-IO.md)
 - [Architecture](docs/architecture.md)
 
 
@@ -48,6 +48,7 @@ Claustrum 将这些分散信息变成团队可共享、可检索的记忆系统�
 
 ```text
 apps/
+  docs-site/
   memory-core/
   mcp-adapter/
   admin-ui/
