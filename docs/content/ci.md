@@ -34,6 +34,19 @@ Main execution flow:
 8. Always run compose cleanup: `docker compose ... down -v --remove-orphans`
 
 
+## Docs Pages Workflow
+
+File:
+- `.github/workflows/docs-pages.yml`
+
+Requirements before first successful deploy:
+1. Repository **Settings → Pages** must be enabled.
+2. Build and deployment source should be **GitHub Actions**.
+
+If this is not enabled, deploy step may fail with:
+- `Error: Failed to create deployment (status: 404)`
+
+
 ## Local Reproduction
 
 Run the same gate locally:
