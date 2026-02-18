@@ -27,7 +27,7 @@ services:
       dockerfile: apps/memory-core/Dockerfile
     container_name: claustrum-memory-core
     environment:
-      DATABASE_URL: ${DATABASE_URL}
+      DATABASE_URL: ${DATABASE_URL:-postgres://claustrum:claustrum@postgres:5432/claustrum}
       MEMORY_CORE_HOST: ${MEMORY_CORE_HOST:-0.0.0.0}
       MEMORY_CORE_PORT: ${MEMORY_CORE_PORT:-8080}
       MEMORY_CORE_LOG_LEVEL: ${MEMORY_CORE_LOG_LEVEL:-error}
@@ -44,7 +44,7 @@ services:
       [
         "sh",
         "-lc",
-        "pnpm db:migrate && if [ \"$MEMORY_CORE_RUN_SEED\" = \"true\" ]; then pnpm db:seed; fi && pnpm start:http",
+        "pnpm db:migrate && if [ \"$$MEMORY_CORE_RUN_SEED\" = \"true\" ]; then pnpm db:seed; fi && pnpm start:http",
       ]
     healthcheck:
       test:
