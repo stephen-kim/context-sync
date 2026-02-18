@@ -15,13 +15,15 @@ DB 원칙:
 - `memory-core`는 `DATABASE_URL`만 사용
 - `POSTGRES_*`는 로컬 compose postgres 초기화용
 
-주요 변수:
+최초 실행 최소 변수:
 - `DATABASE_URL`
-- `MEMORY_CORE_API_KEY` 또는 `MEMORY_CORE_API_KEYS`
-- `MEMORY_CORE_SEED_ADMIN_KEY`
+- `MEMORY_CORE_API_KEY`
 - `MEMORY_CORE_URL`
-- `MEMORY_CORE_WORKSPACE_KEY`
 - `NEXT_PUBLIC_MEMORY_CORE_URL`
+- (localdb profile 전용) `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`
+
+권장(선택):
+- `MEMORY_CORE_SECRET` (세션/hash/one-time/GitHub-state 내부 시크릿의 공통 fallback)
 
 
 ### API 키 변수 (중요)

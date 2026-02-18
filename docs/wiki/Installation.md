@@ -15,13 +15,15 @@ Application DB rule:
 - `memory-core` uses `DATABASE_URL` only.
 - `POSTGRES_*` are local compose postgres bootstrap vars only.
 
-Key variables:
+Minimal variables for first boot:
 - `DATABASE_URL`
-- `MEMORY_CORE_API_KEY` or `MEMORY_CORE_API_KEYS`
-- `MEMORY_CORE_SEED_ADMIN_KEY`
+- `MEMORY_CORE_API_KEY`
 - `MEMORY_CORE_URL`
-- `MEMORY_CORE_WORKSPACE_KEY`
 - `NEXT_PUBLIC_MEMORY_CORE_URL`
+- (`POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`) for localdb profile only
+
+Optional but recommended:
+- `MEMORY_CORE_SECRET` (single shared secret used as fallback for session/hash/one-time/GitHub-state secrets)
 
 
 ### API Key Variables (Important)

@@ -75,6 +75,7 @@ export function loadConfig(): MemoryCoreConfig {
   const openAiApiKey = parseOpenAiApiKey(auditReasonerProviderOrder);
   const claudeApiKey = parseClaudeApiKey(auditReasonerProviderOrder);
   const geminiApiKey = parseGeminiApiKey(auditReasonerProviderOrder);
+  const sharedSecret = (process.env.MEMORY_CORE_SECRET || '').trim();
   const integrationLockPolicy = parseIntegrationLockPolicy(
     process.env.MEMORY_CORE_INTEGRATION_LOCKED_PROVIDERS
   );
@@ -87,13 +88,16 @@ export function loadConfig(): MemoryCoreConfig {
     allowBootstrapAdmin: parseBoolean(process.env.MEMORY_CORE_ALLOW_BOOTSTRAP_ADMIN || 'true'),
     authSessionSecret:
       (process.env.MEMORY_CORE_AUTH_SESSION_SECRET || '').trim() ||
+      sharedSecret ||
       'claustrum-dev-session-secret-change-me',
     authSessionTtlSeconds: parseSessionTtlSeconds(process.env.MEMORY_CORE_AUTH_SESSION_TTL_SECONDS),
     apiKeyHashSecret:
       (process.env.MEMORY_CORE_API_KEY_HASH_SECRET || '').trim() ||
+      sharedSecret ||
       'claustrum-dev-api-key-hash-secret-change-me',
     oneTimeTokenSecret:
       (process.env.MEMORY_CORE_ONE_TIME_TOKEN_SECRET || '').trim() ||
+      sharedSecret ||
       (process.env.MEMORY_CORE_AUTH_SESSION_SECRET || '').trim() ||
       'claustrum-dev-one-time-token-secret-change-me',
     oneTimeTokenTtlSeconds: parseOneTimeTokenTtlSeconds(
@@ -101,6 +105,7 @@ export function loadConfig(): MemoryCoreConfig {
     ),
     githubStateSecret:
       (process.env.MEMORY_CORE_GITHUB_STATE_SECRET || '').trim() ||
+      sharedSecret ||
       (process.env.MEMORY_CORE_AUTH_SESSION_SECRET || '').trim() ||
       'claustrum-dev-github-state-secret-change-me',
     publicBaseUrl: (process.env.MEMORY_CORE_PUBLIC_BASE_URL || '').trim() || undefined,
