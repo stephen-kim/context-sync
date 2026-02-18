@@ -14,7 +14,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "test": "pnpm run test:unit",
     "test:mock": "node scripts/rest-mock-scenarios-test.mjs",
-    "test:unit": "tsx --test src/**/*.test.ts",
+    "test:unit": "pnpm --filter @claustrum/shared build && tsx --test src/**/*.test.ts",
     "lint": "tsc -p tsconfig.json --noEmit",
     "test:smoke": "node scripts/rest-smoke-test.mjs"
   },
