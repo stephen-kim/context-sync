@@ -26,7 +26,7 @@ Secuencia:
 Puntos clave:
 - genera OpenAPI antes del build de docs
 - valida spec generado antes de publicar
-- explorer API en `/docs/api` (Scalar)
+- explorer API en `/api-explorer.html` (Scalar; `/docs/api` redirige por compatibilidad)
 
 Requisitos iniciales:
 1. activar Pages en Settings

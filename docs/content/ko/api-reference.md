@@ -2,7 +2,7 @@
 
 대화형 API 탐색기를 사용하세요.
 
-- [API 탐색기 열기](/docs/api)
+- [API 탐색기 열기](/api-explorer.html)
 
 Scalar로 구동되며 `/openapi.json`에서 OpenAPI 사양을 읽습니다.
 해당 사양은 `apps/memory-core/src/http/routes/**/*.ts`(인라인 Zod `req.body/query/params` 구문 분석 포함)에서 자동으로 생성됩니다.

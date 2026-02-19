@@ -2,7 +2,7 @@
 
 使用交互式 API 文档：
 
-- [打开 API Explorer](/docs/api)
+- [打开 API Explorer](/api-explorer.html)
 
 页面由 Scalar 渲染并读取 `/openapi.json`。  
 OpenAPI 会从 `apps/memory-core/src/http/routes/**/*.ts` 自动生成，并包含内联 Zod `req.body/query/params` 校验定义。

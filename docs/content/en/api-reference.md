@@ -2,7 +2,7 @@
 
 Use the interactive API explorer:
 
-- [Open API Explorer](/docs/api)
+- [Open API Explorer](/api-explorer.html)
 
 It is powered by Scalar and reads the OpenAPI spec at `/openapi.json`.
 That spec is generated automatically from `apps/memory-core/src/http/routes/**/*.ts` (including inline Zod `req.body/query/params` parsing).

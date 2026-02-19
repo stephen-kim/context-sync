@@ -26,7 +26,7 @@ Claustrum は PR と `main` への push で release gate を実行します。
 要点:
 - docs build 前に OpenAPI を自動生成
 - 生成 spec を検証してから Pages に公開
-- API ドキュメントは `/docs/api`（Scalar）
+- API ドキュメントは `/api-explorer.html`（Scalar、`/docs/api` は互換リダイレクト）
 
 初回デプロイ前の必須条件:
 1. Repository Settings -> Pages を有効化

@@ -26,7 +26,7 @@ Claustrum 会在每个 PR 和每次 `main` push 运行 release gate。
 要点：
 - docs build 前自动生成 OpenAPI
 - 发布前校验 spec
-- API 文档入口 `/docs/api`（Scalar）
+- API 文档入口 `/api-explorer.html`（Scalar，`/docs/api` 仅为兼容重定向）
 
 首次部署前要求：
 1. 在仓库 Settings 启用 Pages

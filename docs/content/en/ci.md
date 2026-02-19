@@ -42,7 +42,7 @@ File:
 Build guardrails:
 - Generates `/apps/docs-site/public/openapi.json` from memory-core routes before docs build.
 - Validates generated spec (`paths` and endpoint stats) before publishing to Pages.
-- Docs build then uses Scalar API Explorer at `/docs/api`.
+- Docs build then uses Scalar API Explorer at `/api-explorer.html` (`/docs/api` redirects for compatibility).
 
 Requirements before first successful deploy:
 1. Repository **Settings → Pages** must be enabled.

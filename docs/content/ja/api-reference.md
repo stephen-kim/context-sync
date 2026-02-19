@@ -2,7 +2,7 @@
 
 インタラクティブな API ドキュメントはこちらです。
 
-- [API Explorer を開く](/docs/api)
+- [API Explorer を開く](/api-explorer.html)
 
 このページは Scalar を使って `/openapi.json` を表示します。  
 OpenAPI は `apps/memory-core/src/http/routes/**/*.ts` から自動生成され、インラインの Zod バリデーションも反映されます。

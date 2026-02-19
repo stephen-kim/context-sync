@@ -39,7 +39,7 @@ Claustrum CI는 모든 풀 요청과 `main`에 대한 모든 푸시에 대해 **
 가드레일 구축:
 - 문서가 빌드되기 전에 메모리 코어 경로에서 `/apps/docs-site/public/openapi.json`을 생성합니다.
 - 페이지에 게시하기 전에 생성된 사양(`paths` 및 엔드포인트 통계)을 검증합니다.
-- Docs 빌드에서는 `/docs/api`의 Scalar API Explorer를 사용합니다.
+- Docs 빌드에서는 `/api-explorer.html`의 Scalar API Explorer를 사용합니다(`/docs/api`는 호환용 리다이렉트).
 
 처음 성공적으로 배포하기 전 요구 사항:
 1. 리포지토리 **설정 → 페이지**가 활성화되어 있어야 합니다.

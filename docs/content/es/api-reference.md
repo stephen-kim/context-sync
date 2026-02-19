@@ -2,7 +2,7 @@
 
 Usa el explorador interactivo:
 
-- [Abrir API Explorer](/docs/api)
+- [Abrir API Explorer](/api-explorer.html)
 
 La página usa Scalar y carga `/openapi.json`.  
 Ese spec se genera automáticamente desde `apps/memory-core/src/http/routes/**/*.ts` e incluye validaciones Zod en `req.body/query/params`.

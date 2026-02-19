@@ -167,6 +167,24 @@ function renderCliHighlighted(text: string): React.ReactNode {
 }
 
 const components: Components = {
+  a({ href, children, ...props }) {
+    const normalized = String(href || '');
+    const isApiExplorerLink =
+      normalized.endsWith('/docs/api') ||
+      normalized.endsWith('/api-explorer.html') ||
+      normalized.includes('/docs/api?');
+
+    return (
+      <a
+        href={href}
+        {...props}
+        target={isApiExplorerLink ? '_blank' : undefined}
+        rel={isApiExplorerLink ? 'noopener noreferrer' : props.rel}
+      >
+        {children}
+      </a>
+    );
+  },
   code({ className, children, ...props }) {
     const languageMatch = /language-([\w-]+)/.exec(className || '');
     const language = languageMatch?.[1]?.toLowerCase();
