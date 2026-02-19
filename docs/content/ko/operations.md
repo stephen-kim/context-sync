@@ -102,6 +102,12 @@ pnpm dev
 pnpm test:workspace
 ```
 
+## 버전 정책
+
+- 명시적인 릴리스 결정이 없으면 `major.minor`는 유지합니다.
+- 일반 유지보수 릴리스는 patch만 올립니다 (`x.y.Z`).
+- 루트 버전 올릴 때는 `pnpm version:patch`를 사용합니다.
+
 ## 입력 검증 가드레일
 
 - HTTP 라우트는 서비스 진입 전에 Zod로 요청을 검증합니다.

@@ -108,6 +108,12 @@ pnpm dev
 pnpm test:workspace
 ```
 
+## Versioning Policy
+
+- Keep `major.minor` fixed unless there is an explicit release decision.
+- Normal maintenance releases must bump patch only (`x.y.Z`).
+- Use `pnpm version:patch` to bump root version safely.
+
 ## Validation Guardrails
 
 - HTTP route ingress in memory-core is validated with Zod before data reaches service handlers.

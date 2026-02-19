@@ -1,6 +1,6 @@
 {
   "name": "@claustrum/server",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "description": "Claustrum monorepo: shared memory layer for AI systems",
   "type": "module",
   "main": "apps/mcp-adapter/dist/index.js",
@@ -32,6 +32,7 @@
     "docs:dev": "pnpm --filter @claustrum/docs-site dev",
     "docs:build": "pnpm --filter @claustrum/docs-site build",
     "docs:start": "pnpm --filter @claustrum/docs-site start",
+    "version:patch": "node scripts/bump-patch-version.mjs",
     "mcp:helper": "node scripts/mcp-config-helper.js",
     "eval:bundle": "tsx scripts/eval/run_bundle_eval.ts",
     "eval:diff": "tsx scripts/eval/diff_bundle.ts",

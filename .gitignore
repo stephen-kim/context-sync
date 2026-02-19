@@ -75,3 +75,4 @@ hf_space/
 !/scripts/generate-openapi.mjs
 !/scripts/mcp-config-helper.js
 !/scripts/check-route-zod-boundary.mjs
+!/scripts/bump-patch-version.mjs
