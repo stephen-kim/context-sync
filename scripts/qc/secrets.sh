@@ -70,7 +70,8 @@ if [[ -z "${admin_user_id}" ]]; then
   log_fail "Unable to read admin user ID from /v1/auth/me"
 fi
 
-http_call "POST" "/v1/users/${admin_user_id}/api-keys/reset" "" "${admin_token}"
+reset_device_label="release-gate-reset-$(date +%s)"
+http_call "POST" "/v1/users/${admin_user_id}/api-keys/reset" "{\"device_label\":\"${reset_device_label}\"}" "${admin_token}"
 assert_status "200" "Failed to create one-time API key view token"
 one_time_url="$(json_eval "${HTTP_BODY_FILE}" "d.one_time_url || ''")"
 if [[ -z "${one_time_url}" ]]; then

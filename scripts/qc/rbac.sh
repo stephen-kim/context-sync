@@ -73,7 +73,9 @@ assert_status "201" "Failed to add MAINTAINER project member"
 issue_workspace_key() {
   local user_id="${1}"
   local label="${2}"
-  http_call "POST" "/v1/workspaces/${workspace_key}/api-keys" "$(printf '{"user_id":"%s","label":"%s"}' "${user_id}" "${label}")" "${admin_token}"
+  local device_label
+  device_label="${label}-device"
+  http_call "POST" "/v1/workspaces/${workspace_key}/api-keys" "$(printf '{"user_id":"%s","label":"%s","device_label":"%s"}' "${user_id}" "${label}" "${device_label}")" "${admin_token}"
   assert_status "201" "Failed to issue workspace API key (${label})"
   local one_time_url
   one_time_url="$(json_eval "${HTTP_BODY_FILE}" "d.one_time_url || ''")"
