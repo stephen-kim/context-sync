@@ -29,5 +29,3 @@ Workspace Settings で次を設定します。
 
 - 手動: `POST /v1/projects/:key/recompute-active-work`
 - 定期: 夜間の再計算ジョブ
-
-最終更新: 2026-02-19

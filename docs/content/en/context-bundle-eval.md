@@ -184,6 +184,3 @@ Schema guard details:
 - Judge is skipped unexpectedly
   - confirm `--judge true`
   - confirm both `EVAL_JUDGE_PROVIDER` and `EVAL_JUDGE_API_KEY`
-
-
-Last Updated: 2026-02-18

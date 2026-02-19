@@ -53,5 +53,3 @@ En Claustrum, la regla es simple: la clave se muestra una sola vez y en base de 
 - usa `device_label` por dispositivo
 - revoca keys que ya no se usan
 - si sospechas filtración, resetea de inmediato
-
-Última actualización: 2026-02-19

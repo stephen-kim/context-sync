@@ -33,5 +33,3 @@ Admin UI 可执行：
 - close/reopen active work
 
 这些操作保持显式触发，确保自动化可解释。
-
-最后更新: 2026-02-19

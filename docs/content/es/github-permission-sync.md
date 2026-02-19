@@ -51,5 +51,3 @@ Si no existe user link para un usuario de GitHub:
 - `GET /v1/workspaces/:key/github/permission-status`
 - `GET /v1/workspaces/:key/github/permission-preview`
 - `GET /v1/workspaces/:key/github/cache-status`
-
-Última actualización: 2026-02-19

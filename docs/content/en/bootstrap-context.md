@@ -31,5 +31,3 @@ Bootstrap collector samples these local signals when available:
 - Bootstrap is non-blocking.
 - If source files are missing or unreadable, the project still works.
 - Bootstrap can be retried manually.
-
-Last Updated: 2026-02-17

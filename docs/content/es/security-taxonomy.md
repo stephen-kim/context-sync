@@ -45,5 +45,3 @@ Puedes sobreescribir por evento:
 - `security_stream_min_severity` (`low|medium|high`, default: `medium`)
 
 Si no hay sink dedicado, se usan sinks de seguridad habilitados.
-
-Última actualización: 2026-02-19

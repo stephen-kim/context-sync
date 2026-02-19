@@ -58,5 +58,3 @@ Admin UI:
 - email を主キーにしない
 - `claim_groups_format=id` を優先
 - client secret は定期ローテーション
-
-最終更新: 2026-02-19

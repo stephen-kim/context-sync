@@ -41,5 +41,3 @@ Claustrum permite elegir, por workspace, cómo compartir o separar memoria dentr
 - el orden de fallback del resolver no cambia: `github_remote > repo_root_slug > manual`
 - si falla detección de subpath en modos split, fallback a repo key
 - configuración en UI: **Project Resolution Settings -> Monorepo Context**
-
-Última actualización: 2026-02-19

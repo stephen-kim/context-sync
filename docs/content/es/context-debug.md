@@ -33,5 +33,3 @@ Desde Admin UI:
 - cerrar/reabrir active work
 
 Se mantiene explícito para que la automatización sea transparente.
-
-Última actualización: 2026-02-19

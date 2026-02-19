@@ -45,5 +45,3 @@ Detection Rules permite detectar patrones sospechosos con reglas de umbral.
 - empezar con reglas de severidad alta
 - observar una semana
 - ajustar umbrales para bajar falsos positivos
-
-Última actualización: 2026-02-19

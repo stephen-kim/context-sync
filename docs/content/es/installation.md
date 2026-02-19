@@ -65,5 +65,3 @@ O en una línea:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/stephen-kim/claustrum/main/scripts/mcp-config-helper.js -o ./claustrum-mcp-config-helper.js && node ./claustrum-mcp-config-helper.js
 ```
-
-Última actualización: 2026-02-19

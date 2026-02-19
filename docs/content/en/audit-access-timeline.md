@@ -1,6 +1,5 @@
 # Audit Access Timeline
 
-Last Updated: February 17, 2026
 
 ## Purpose
 

@@ -1,6 +1,5 @@
 # Audit Retention
 
-Last Updated: February 17, 2026
 
 ## Workspace Settings
 

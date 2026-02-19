@@ -1,6 +1,5 @@
 # Context Budget
 
-Last Updated: 2026-02-18
 
 Claustrum bundles context using token-budget partitioning instead of fixed-count clipping.
 

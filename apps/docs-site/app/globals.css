@@ -8,7 +8,7 @@
     --foreground: 0 0% 98%;
     --card: 0 0% 6%;
     --card-foreground: 0 0% 98%;
-    --primary: 221.2 83.2% 53.3%;
+    --primary: 206 100% 64%;
     --primary-foreground: 210 40% 98%;
     --secondary: 0 0% 14%;
     --secondary-foreground: 0 0% 98%;
@@ -18,7 +18,7 @@
     --accent-foreground: 0 0% 98%;
     --border: 0 0% 18%;
     --input: 0 0% 18%;
-    --ring: 221.2 83.2% 53.3%;
+    --ring: 206 100% 64%;
     --radius: 0.625rem;
   }
 
@@ -64,5 +64,30 @@
 
   .prose-docs {
     @apply prose prose-invert max-w-none prose-headings:scroll-mt-24 prose-a:text-primary prose-pre:border prose-pre:border-border prose-pre:bg-muted/30;
+  }
+
+  .prose-docs :where(strong) {
+    @apply text-primary;
+  }
+
+  .prose-docs :where(code):not(:where(pre code)) {
+    @apply rounded bg-muted/70 px-1.5 py-0.5 font-mono text-[0.88em] text-primary;
+    font-variant-ligatures: none;
+  }
+
+  .prose-docs :where(code):not(:where(pre code))::before,
+  .prose-docs :where(code):not(:where(pre code))::after {
+    content: '';
+  }
+
+  .docs-select {
+    color-scheme: dark;
+    border-radius: 0.625rem;
+    padding-left: 0.875rem;
+    padding-right: 2rem;
+  }
+
+  .docs-select option {
+    @apply bg-card text-foreground;
   }
 }

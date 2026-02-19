@@ -103,5 +103,3 @@ CI는 `.env.example`에서 로컬 `.env` 파일을 작성한 다음 비밀이 �
 - 정리에 실패한 경우:
   - 수동 정리 실행:
     - `docker compose -f docker-compose.dev.yml --profile localdb down -v --remove-orphans`
-
-최종 업데이트 날짜: 2026-02-18

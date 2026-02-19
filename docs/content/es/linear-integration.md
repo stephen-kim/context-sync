@@ -53,5 +53,3 @@ Usar Linear como fuente externa de contexto de issues para MCP.
 
 - `Integration not configured`: revisa `api_key` y `enabled=true`
 - search funciona y read falla: revisa permisos del token sobre equipo/proyecto
-
-Última actualización: 2026-02-19

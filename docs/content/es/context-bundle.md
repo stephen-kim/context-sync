@@ -32,5 +32,3 @@ Context Bundle estandariza el contexto para que Codex, Claude, Cursor y otros cl
 ## Uso desde MCP
 
 `mcp-adapter` puede llamar este endpoint con `context_bundle()` antes de `recall`/`remember`.
-
-Última actualización: 2026-02-19

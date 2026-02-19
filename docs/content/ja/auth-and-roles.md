@@ -47,5 +47,3 @@ Claustrum は、API キーでユーザーを識別し、workspace / project ロ�
 - `decision.confirm`
 - `decision.reject`
 - メンバー管理 / API キー管理
-
-最終更新: 2026-02-19

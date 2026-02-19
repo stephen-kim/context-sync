@@ -109,8 +109,8 @@
 | `MEMORY_CORE_CONFLUENCE_BASE_URL` | 선택사항 | 비어 있음 | Confluence 기본 URL. |
 | `MEMORY_CORE_CONFLUENCE_EMAIL` | 선택사항 | 비어 있음 | Confluence 사용자 이메일. |
 | `MEMORY_CORE_CONFLUENCE_API_TOKEN` | 선택사항 | 비어 있음 | Confluence API 토큰. |
-| `MEMORY_CORE_LINEAR_API_KEY` | 선택사항 | 비어 있음 | 선형 API 키. |
-| `MEMORY_CORE_LINEAR_API_URL` | 선택사항 | 비어 있음 | 선형 API URL 재정의. |
+| `MEMORY_CORE_LINEAR_API_KEY` | 선택사항 | 비어 있음 | 리니어 API 키. |
+| `MEMORY_CORE_LINEAR_API_URL` | 선택사항 | 비어 있음 | 리니어 API URL 재정의. |
 
 ## 메모리 코어(감사 추론기/LLM)
 
@@ -203,5 +203,3 @@
 - `.env.example`을 최소화하세요.
 - `.env`에는 활성 값만 입력하세요.
 - 의도적으로 ENV 모드를 강제하지 않는 한 관리 UI에서 DB에 저장된 통합 설정을 선호합니다.
-
-최종 업데이트 날짜: 2026-02-18

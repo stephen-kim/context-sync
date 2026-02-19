@@ -44,5 +44,3 @@ Active Work 的关键状态变化会记录为不可变事件。
 - `active_work.manual_confirm`
 - `active_work.manual_close`
 - `active_work.manual_reopen`
-
-最后更新: 2026-02-19

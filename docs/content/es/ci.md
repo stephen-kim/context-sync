@@ -56,5 +56,3 @@ RELEASE_GATE_RESET_DB=true ./scripts/release-gate.sh
   - revisar profile `localdb` y variables Postgres
 - falla webhook QC:
   - revisar `GITHUB_APP_WEBHOOK_SECRET`
-
-Última actualización: 2026-02-19

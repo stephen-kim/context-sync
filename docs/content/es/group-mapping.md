@@ -57,5 +57,3 @@ El mapeo de grupos conecta grupos del IdP con roles de workspace/proyecto en Cla
 - Usar IDs estables de grupo
 - Empezar con pocos mappings críticos
 - Ajustar `priority` para resolver conflictos
-
-Última actualización: 2026-02-19

@@ -53,5 +53,3 @@ flowchart TD
 - `delivery_id` 一意制約で冪等性を担保
 - 失敗イベントは最大 3 回再試行
 - 署名不正は `401` + `github.webhook.signature_failed`
-
-最終更新: 2026-02-19

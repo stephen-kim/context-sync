@@ -44,5 +44,3 @@ Las acciones manuales quedan auditadas:
 - `active_work.manual_confirm`
 - `active_work.manual_close`
 - `active_work.manual_reopen`
-
-Última actualización: 2026-02-19

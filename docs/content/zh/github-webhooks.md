@@ -38,5 +38,3 @@
 1. 检查 webhook secret 是否一致
 2. 检查 installation 是否正确连接
 3. 检查 team mapping 与 user links 是否完整
-
-最后更新: 2026-02-19

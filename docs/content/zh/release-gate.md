@@ -36,5 +36,3 @@ RELEASE_GATE_RESET_DB=true ./scripts/release-gate.sh
 - `rbac.sh`: reader/writer/maintainer 权限边界
 - `webhooks.sh`: 签名校验与幂等
 - `secrets.sh`: 秘密泄露模式扫描
-
-最后更新: 2026-02-19

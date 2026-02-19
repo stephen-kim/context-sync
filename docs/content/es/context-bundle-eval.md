@@ -79,5 +79,3 @@ Providers: `openai`, `claude`, `gemini`
 - no imprimir ni guardar API keys
 - `workspace_key`/`project_key` sí pueden aparecer en reportes
 - auth por `MEMORY_CORE_API_KEY`
-
-Última actualización: 2026-02-19

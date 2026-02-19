@@ -70,5 +70,3 @@ Project → Context Debug:
 - Keep `top_k` small (`3~8`) for better focus.
 - Increase `min_score` when too many low-quality rules appear.
 - Add tags (`security`, `commit`, `naming`, etc.) to improve keyword routing quality.
-
-Last Updated: 2026-02-18

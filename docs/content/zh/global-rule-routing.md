@@ -47,5 +47,3 @@ Claustrum 会根据问题与上下文动态选择规则。
 - `top_k` 建议在 `3~8`
 - 噪声高时提高 `min_score`
 - 补充 tags 可提升 keyword routing 效果
-
-最后更新: 2026-02-19

@@ -54,5 +54,3 @@ In enterprise deployment, this split model provides:
 - OIDC gate failure denies access before project role evaluation.
 - Identity links are tenant-scoped by workspace.
 - Group-claim format mismatch must be treated as configuration risk.
-
-Last Updated: 2026-02-17

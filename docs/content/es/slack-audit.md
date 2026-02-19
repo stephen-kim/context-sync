@@ -54,5 +54,3 @@ Es una integración de notificación saliente (no expone herramientas MCP de lec
 
 - no llega mensaje: revisa webhook + `enabled=true` + filtros
 - error de provider locked: revisa política de lock de integración
-
-Última actualización: 2026-02-19

@@ -78,5 +78,3 @@ erDiagram
 - 既定の recall は `memories` 中心
 - raw search は snippet のみ返却（長さ上限あり）
 - raw アクセスは必ず `audit_logs` に記録
-
-最終更新: 2026-02-19

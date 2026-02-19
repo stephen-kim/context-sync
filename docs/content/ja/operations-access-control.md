@@ -65,5 +65,3 @@
 - 監査の精度に自信がついてから `add_and_remove`
 - owner 保護ルールは常時 ON 推奨
 - 可能な限り partial recompute を使う
-
-最終更新: 2026-02-19

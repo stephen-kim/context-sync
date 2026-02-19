@@ -51,5 +51,3 @@ Siempre se registran en `audit_logs` acciones críticas como:
 - `decision.confirm`
 - `decision.reject`
 - gestión de miembros y API keys
-
-Última actualización: 2026-02-19

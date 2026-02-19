@@ -49,5 +49,3 @@ Paso 2 (opcional):
 - expiración de invitación: 24h
 - API keys almacenadas solo como hash
 - admin no puede recuperar plaintext de key existente
-
-Última actualización: 2026-02-19

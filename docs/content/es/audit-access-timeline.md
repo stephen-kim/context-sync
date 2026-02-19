@@ -64,5 +64,3 @@ Filtros principales:
 - action
 - date range
 - cursor pagination
-
-Última actualización: 2026-02-19

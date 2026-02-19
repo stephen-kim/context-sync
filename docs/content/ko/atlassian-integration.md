@@ -17,11 +17,11 @@ MCP 워크플로에서 Jira 및 Confluence를 외부 컨텍스트 소스로 사�
 
 ## 환경 변수(대체)
 
-- 지라
+- Jira
   - `MEMORY_CORE_JIRA_BASE_URL`
   - `MEMORY_CORE_JIRA_EMAIL`
   - `MEMORY_CORE_JIRA_API_TOKEN`
-- 컨플루언스
+- Confluence
   - `MEMORY_CORE_CONFLUENCE_BASE_URL`
   - `MEMORY_CORE_CONFLUENCE_EMAIL`
   - `MEMORY_CORE_CONFLUENCE_API_TOKEN`
@@ -39,7 +39,7 @@ MCP 워크플로에서 Jira 및 Confluence를 외부 컨텍스트 소스로 사�
   - `base_url`
   - `email`
   - `api_token`
-- 컨플루언스 저장:
+- Confluence 저장:
   - `enabled=true`
   - `base_url`(`https://your-org.atlassian.net` 또는 `https://your-org.atlassian.net/wiki`)
   - `email`
@@ -109,11 +109,11 @@ curl -G "$MEMORY_CORE_URL/v1/confluence/search" \
 
 ## API 엔드포인트
 
-지라:
+Jira:
 - `GET /v1/jira/search?workspace_key=<ws>&q=<query>&limit=10`
 - `GET /v1/jira/read?workspace_key=<ws>&issue_key=<ABC-123>&max_chars=4000`
 
-합류:
+Confluence:
 - `GET /v1/confluence/search?workspace_key=<ws>&q=<query>&limit=10`
 - `GET /v1/confluence/read?workspace_key=<ws>&page_id=<id-or-url>&max_chars=4000`
 

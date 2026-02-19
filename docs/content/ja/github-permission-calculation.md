@@ -64,5 +64,3 @@ team 権限を user 単位に展開し、direct 権限と max ルールで合成
 - 本番適用前に `dry_run=true` 推奨
 - `github_user_links` を最新化して unmatched を減らす
 - rename 耐性のため `github_user_id` の保存推奨
-
-最終更新: 2026-02-19

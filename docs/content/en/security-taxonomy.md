@@ -49,5 +49,3 @@ Default severity:
 - `security_stream_min_severity` (`low|medium|high`, default `medium`)
 
 If no dedicated sink is set, Claustrum falls back to enabled security-capable sinks.
-
-Last Updated: 2026-02-17

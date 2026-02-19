@@ -1,6 +1,5 @@
 # Audit Model
 
-Last Updated: February 17, 2026
 
 ## Principles
 

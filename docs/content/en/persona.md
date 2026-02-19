@@ -29,5 +29,3 @@ Behavior:
 3. Click **Apply Recommended Persona** if desired.
 
 Applied change is audited with `user.persona.changed`.
-
-Last Updated: 2026-02-18

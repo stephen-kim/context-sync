@@ -65,5 +65,3 @@
 - 审计稳定后再启用 `add_and_remove`
 - owner 保护规则保持开启
 - 优先使用 partial recompute，避免全量重算
-
-最后更新: 2026-02-19

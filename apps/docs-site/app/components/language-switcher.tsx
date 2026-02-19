@@ -97,7 +97,7 @@ export function LanguageSwitcher({ availableLanguages }: { availableLanguages: R
           router.push(buildHref(targetLang, slug));
         }}
         aria-label="Select language"
-        className="h-9 min-w-[112px]"
+        className="docs-select h-9 min-w-[112px] rounded-md border border-input bg-card px-3 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
       >
         {normalizedAvailable.map((lang) => (
           <option key={lang} value={lang}>

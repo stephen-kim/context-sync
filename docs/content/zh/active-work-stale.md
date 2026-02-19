@@ -29,5 +29,3 @@ Active Work 基于近期信号推断，并会周期性重算。
 
 - 手动：`POST /v1/projects/:key/recompute-active-work`
 - 定时：夜间重算任务
-
-最后更新: 2026-02-19

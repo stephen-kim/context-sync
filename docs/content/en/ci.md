@@ -112,6 +112,3 @@ On failure, CI uploads:
 - If cleanup fails:
   - run manual cleanup:
     - `docker compose -f docker-compose.dev.yml --profile localdb down -v --remove-orphans`
-
-
-Last Updated: 2026-02-18

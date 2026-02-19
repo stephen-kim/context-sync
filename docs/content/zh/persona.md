@@ -23,5 +23,3 @@ Persona 用来决定“当前用户更应该看到哪类上下文”。
 3. 需要时点击 `Apply Recommended Persona`
 
 变更会写入审计事件 `user.persona.changed`。
-
-最后更新: 2026-02-19

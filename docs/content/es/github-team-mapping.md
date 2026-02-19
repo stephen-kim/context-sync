@@ -76,5 +76,3 @@ Inputs:
 - target type/key
 - role
 - priority
-
-Última actualización: 2026-02-19

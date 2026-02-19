@@ -45,5 +45,3 @@ La identidad OIDC se fija con:
 - si falla OIDC gate, se bloquea acceso antes del cálculo de rol de proyecto
 - identity links aislados por workspace
 - mismatch en formato de group claim se trata como riesgo de configuración
-
-Última actualización: 2026-02-19

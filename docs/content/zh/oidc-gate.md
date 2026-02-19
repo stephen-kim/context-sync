@@ -45,5 +45,3 @@ OIDC 身份以以下元组识别：
 - OIDC gate 失败时，直接拒绝访问
 - identity link 按 workspace 隔离
 - group claim 格式不匹配视为配置风险
-
-最后更新: 2026-02-19

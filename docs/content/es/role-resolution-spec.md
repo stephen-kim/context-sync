@@ -55,5 +55,3 @@ access_allowed = (
 
 - agrega/actualiza/elimina
 - respeta protección de owner
-
-Última actualización: 2026-02-19

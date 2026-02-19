@@ -58,5 +58,3 @@ Release Gate sets `MEMORY_CORE_RUN_SEED=false` by default so bootstrap admin flo
 - name: Release Gate
   run: RELEASE_GATE_RESET_DB=true ./scripts/release-gate.sh
 ```
-
-Last Updated: 2026-02-18

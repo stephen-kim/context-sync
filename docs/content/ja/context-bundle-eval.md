@@ -79,5 +79,3 @@ provider: `openai`, `claude`, `gemini`
 - API key を出力/保存しない
 - `workspace_key` / `project_key` は出力可
 - 認証は `MEMORY_CORE_API_KEY` を利用
-
-最終更新: 2026-02-19

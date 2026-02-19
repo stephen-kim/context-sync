@@ -56,5 +56,3 @@ RELEASE_GATE_RESET_DB=true ./scripts/release-gate.sh
   - 检查 `localdb` profile 与 Postgres 变量
 - webhook QC 失败:
   - 检查 `GITHUB_APP_WEBHOOK_SECRET`
-
-最后更新: 2026-02-19

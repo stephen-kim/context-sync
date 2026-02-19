@@ -57,5 +57,3 @@ Group Mapping 用于把 IdP 组映射到 Claustrum 的 workspace/project 角色�
 - 用稳定 group id，不用名称
 - 先配置少量关键映射
 - 通过 `priority` 管理冲突顺序
-
-最后更新: 2026-02-19

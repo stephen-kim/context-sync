@@ -38,5 +38,3 @@ iwr https://raw.githubusercontent.com/stephen-kim/claustrum/main/scripts/mcp-con
 - `memory-core`: API REST + Postgres + motor de políticas
 - `mcp-adapter`: puente MCP stdio que llama a memory-core
 - `admin-ui`: consola para workspace, permisos, integraciónes y auditoría
-
-Última actualización: 2026-02-19

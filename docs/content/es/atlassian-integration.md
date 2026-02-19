@@ -72,5 +72,3 @@ Confluence:
 - `Invalid API key`: revisa token y cabecera Authorization
 - `Integration not configured`: revisa configuración por workspace
 - search funciona pero read falla: revisa permisos en Atlassian
-
-Última actualización: 2026-02-19

@@ -56,5 +56,3 @@ Admin Console includes an **LLM Usage** dashboard:
 - Date range filter
 - Total tokens and estimated cost
 - Grouped breakdown table
-
-Last Updated: February 19, 2026

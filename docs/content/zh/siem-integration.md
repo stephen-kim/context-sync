@@ -45,5 +45,3 @@ HMAC_SHA256(secret, raw_json_body)
 - 新建 sink
 - 发送测试事件
 - 查看投递状态（queued/sending/delivered/failed）
-
-最后更新: 2026-02-19

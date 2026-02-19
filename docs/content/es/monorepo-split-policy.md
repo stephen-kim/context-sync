@@ -67,5 +67,3 @@ En `split_on_demand` solo se consideran filas habilitadas.
 
 El aliasing automático para rename de repo/subpath está planificado como trabajo futuro.  
 Mientras tanto, mantén entradas antiguas temporalmente y migra por etapas.
-
-Última actualización: 2026-02-19

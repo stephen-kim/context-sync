@@ -36,5 +36,3 @@ When `debug=true`, each result can include:
 - `recency_boost`
 - `subpath_boost`
 - `final`
-
-Last Updated: 2026-02-17

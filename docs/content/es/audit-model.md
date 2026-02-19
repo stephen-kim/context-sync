@@ -33,5 +33,3 @@ Permite agrupar eventos de una misma operación, por ejemplo:
 - `GET /v1/audit/export`
 - formatos: `csv` y `json`
 - requiere workspace admin
-
-Última actualización: 2026-02-19

@@ -60,5 +60,3 @@ Admin Console:
 - `decision_auto_confirm_min_confidence = 0.90`
 - `decision_batch_size = 25`
 - `decision_backfill_days = 30`
-
-最終更新: 2026-02-19

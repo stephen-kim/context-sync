@@ -36,5 +36,3 @@ Si alguna validación falla, el script termina con `exit 1`.
 - `rbac.sh`: límites reader/writer/maintainer
 - `webhooks.sh`: firma e idempotencia
 - `secrets.sh`: búsqueda de fugas de secretos
-
-Última actualización: 2026-02-19

@@ -78,5 +78,3 @@ La detección de subproyecto es por ruta y se controla en `workspace_settings`.
 - El recall por defecto sigue usando `memories`.
 - Raw search devuelve solo snippets con límite de longitud.
 - Todo acceso raw queda registrado en `audit_logs`.
-
-Última actualización: 2026-02-19

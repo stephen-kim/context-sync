@@ -69,5 +69,3 @@ Reglas:
 3. user link existente
 4. permission preview correcto
 5. webhook + auditoría sin errores
-
-Última actualización: 2026-02-19

@@ -46,5 +46,3 @@ Ruta: `Workspace -> Integrations -> SIEM`
 - crear sink
 - test delivery
 - revisar estado (`queued/sending/delivered/failed`)
-
-Última actualización: 2026-02-19

@@ -17,5 +17,3 @@ OpenAPI は `apps/memory-core/src/http/routes/**/*.ts` から自動生成され�
 - 権限制御の仕様は以下を参照してください。
   - [Auth and Roles](auth-and-roles)
   - [Role Resolution Specification](role-resolution-spec)
-
-最終更新: 2026-02-19

@@ -32,5 +32,3 @@ Claustrum usa búsqueda híbrida por defecto: FTS + semantic.
 - `recency_boost`
 - `subpath_boost`
 - `final`
-
-Última actualización: 2026-02-19

@@ -67,5 +67,3 @@ Para write-back, conviene priorizar flujo en CI (merge-based) frente a hooks loc
 - error en search/read: revisa token y permisos de la página
 - write falla: revisa rol admin + `write_enabled=true`
 - merge write no dispara: revisa `write_on_merge` y pipeline
-
-Última actualización: 2026-02-19

@@ -65,5 +65,3 @@ Guía operativa para lanzar un workspace con control de acceso estable.
 - pasar a `add_and_remove` cuando confíes en auditoría
 - mantener owner protection activo
 - preferir recálculo parcial frente a recálculo completo
-
-Última actualización: 2026-02-19

@@ -31,5 +31,3 @@ Cuando existen, toma señal de:
 - No bloquea el proyecto.
 - Si faltan archivos, el sistema sigue funcionando.
 - Se puede reintentar manualmente.
-
-Última actualización: 2026-02-19

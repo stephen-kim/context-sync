@@ -63,5 +63,3 @@ Comportamiento:
 - `POST /v1/workspaces/:key/github/sync-permissions`
 - `GET /v1/workspaces/:key/github/permission-preview?repo=owner/repo`
 - `GET /v1/workspaces/:key/github/cache-status`
-
-Última actualización: 2026-02-19

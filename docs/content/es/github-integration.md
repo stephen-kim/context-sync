@@ -77,5 +77,3 @@ Opcionales:
 - El `state` del callback va firmado y con expiración.
 - El callback revalida que el actor tenga rol admin/owner.
 - La private key se usa solo en el servidor.
-
-Última actualización: 2026-02-19

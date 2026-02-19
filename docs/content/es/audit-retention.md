@@ -37,5 +37,3 @@ Campos típicos del evento:
 - empezar con `archive`
 - en entornos enterprise: 180-365 días de auditoría
 - `hard_delete` solo si compliance lo exige
-
-Última actualización: 2026-02-19

@@ -53,5 +53,3 @@ flowchart TD
 - `delivery_id` único garantiza idempotencia
 - reintentos: hasta 3
 - firma inválida: `401` + `github.webhook.signature_failed`
-
-Última actualización: 2026-02-19

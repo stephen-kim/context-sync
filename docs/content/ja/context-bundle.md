@@ -32,5 +32,3 @@ Context Bundle は、Codex / Claude / Cursor などのクライアントが同�
 ## MCP 側での使い方
 
 `mcp-adapter` の `context_bundle()` からこの API を呼び、`recall` / `remember` 前の文脈注入に使えます。
-
-最終更新: 2026-02-19

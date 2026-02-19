@@ -79,5 +79,3 @@ Manual override is for exceptions only.
 - It outranks derived grants.
 - It must be auditable.
 - It should be time-bounded in operations policy.
-
-Last Updated: 2026-02-17

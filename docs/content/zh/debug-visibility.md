@@ -24,5 +24,3 @@ Project -> Context Debug
 
 - 该页面用于观测与调参，不改变权限模型。
 - raw 全文依旧受保护，只展示 snippet 与 evidence 引用。
-
-最后更新: 2026-02-19

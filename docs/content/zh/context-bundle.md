@@ -32,5 +32,3 @@ Context Bundle 用来统一上下文格式，让 Codex / Claude / Cursor 等客�
 ## 在 MCP 中的使用
 
 `mcp-adapter` 可通过 `context_bundle()` 在 `recall` / `remember` 前获取标准上下文。
-
-最后更新: 2026-02-19

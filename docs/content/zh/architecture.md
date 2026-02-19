@@ -78,5 +78,3 @@ Monorepo key 形式：
 - 默认 recall 仍以 `memories` 为主。
 - raw search 只返回 snippet，并有长度上限。
 - raw 访问会写入 `audit_logs`。
-
-最后更新: 2026-02-19

@@ -80,5 +80,3 @@ Critical action keys to monitor:
 - Use `add_and_remove` after audit confidence is established.
 - Keep owner protection enabled.
 - Use partial recompute to limit the impact scope.
-
-Last Updated: 2026-02-17

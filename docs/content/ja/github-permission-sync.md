@@ -49,5 +49,3 @@ GitHub 側ユーザーに user link がない場合:
 - `GET /v1/workspaces/:key/github/permission-status`
 - `GET /v1/workspaces/:key/github/permission-preview`
 - `GET /v1/workspaces/:key/github/cache-status`
-
-最終更新: 2026-02-19

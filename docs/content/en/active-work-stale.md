@@ -29,5 +29,3 @@ Configured in Workspace Settings:
 
 - Manual: `POST /v1/projects/:key/recompute-active-work`
 - Scheduled: nightly recompute job
-
-Last Updated: 2026-02-18

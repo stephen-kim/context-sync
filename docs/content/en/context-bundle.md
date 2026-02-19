@@ -52,5 +52,3 @@ Claustrum provides a normalized context bundle so Codex/Claude/Cursor-like clien
 ## MCP Usage
 
 `mcp-adapter` exposes `context_bundle()` and can call this endpoint before `recall`/`remember` pipelines.
-
-Last Updated: 2026-02-17

@@ -40,5 +40,3 @@
 - 수동 제어(관리자+)
 
 수동 재정의는 감사됩니다(`active_work.manual_confirm`, `active_work.manual_close`, `active_work.manual_reopen`).
-
-최종 업데이트 날짜: 2026-02-18

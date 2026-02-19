@@ -39,5 +39,3 @@ Ruta: **Workspace -> Integrations -> GitHub**
 1. verifica el secret
 2. verifica que la installation esté conectada
 3. verifica team mappings y user links
-
-Última actualización: 2026-02-19

@@ -63,5 +63,3 @@ Secuencia:
 - no usar email como clave estable
 - preferir `claim_groups_format=id`
 - rotar client secrets de forma periódica
-
-Última actualización: 2026-02-19

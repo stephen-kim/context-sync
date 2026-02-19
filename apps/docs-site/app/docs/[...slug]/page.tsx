@@ -32,6 +32,7 @@ export default function DocPage({ params }: Props) {
     notFound();
   }
   const currentHref = buildDocHref(doc.slugBase, requestedLang);
+  const homeHref = requestedLang === 'en' ? '/docs/home' : `/docs/${requestedLang}/home`;
 
   return (
     <main className="container-docs grid gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
@@ -41,7 +42,6 @@ export default function DocPage({ params }: Props) {
         <div className="panel-body space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h1 className="title">{doc.title}</h1>
               <p className="subtitle">
                 {requestedLang !== 'en' && doc.lang === 'en'
                   ? `${requestedLang.toUpperCase()} fallback to English document`
@@ -52,7 +52,7 @@ export default function DocPage({ params }: Props) {
               </p>
             </div>
             <div className="flex gap-2">
-              <Link className="button-link no-underline" href="/">
+              <Link className="button-link no-underline" href={homeHref}>
                 Home
               </Link>
             </div>

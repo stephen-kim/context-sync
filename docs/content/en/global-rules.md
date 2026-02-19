@@ -1,6 +1,5 @@
 # Global Rules
 
-Last Updated: 2026-02-18
 
 Claustrum supports two global rule scopes:
 

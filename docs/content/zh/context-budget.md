@@ -41,5 +41,3 @@ Claustrum 采用 token 预算分配，而不是固定条数截断。
 - `global_workspace_pct + global_user_pct` 建议在 `0.20 ~ 0.35`
 - retrieval 建议 `>= 0.25`
 - 规则变多时优先启用 summary，而不是硬限制
-
-最后更新: 2026-02-19

@@ -24,5 +24,3 @@ Project -> Context Debug
 
 - Es una vista de observabilidad/tuning.
 - El raw completo sigue protegido; solo se muestran snippets y referencias.
-
-Última actualización: 2026-02-19

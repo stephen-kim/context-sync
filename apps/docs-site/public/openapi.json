@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Claustrum Memory Core API",
-    "version": "0.1.3",
+    "version": "0.1.4",
     "description": "Auto-generated from memory-core route declarations and inline Zod validations."
   },
   "servers": [
@@ -9986,7 +9986,7 @@
       }
     }
   },
-  "x-generated-at": "2026-02-19T06:22:01.084Z",
+  "x-generated-at": "2026-02-19T07:27:06.889Z",
   "x-generated-from": [
     "apps/memory-core/src/http/routes/**/*.ts",
     "apps/memory-core/src/http-server.ts"

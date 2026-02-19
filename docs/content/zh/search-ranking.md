@@ -32,5 +32,3 @@ Claustrum 默认使用 hybrid 检索（FTS + semantic）。
 - `recency_boost`
 - `subpath_boost`
 - `final`
-
-最后更新: 2026-02-19

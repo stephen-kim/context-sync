@@ -41,5 +41,3 @@ Claustrum は固定件数カットではなく、token budget 分割で context 
 - `global_workspace_pct + global_user_pct` は `0.20 ~ 0.35` 付近
 - query 重視なら retrieval は `>= 0.25`
 - ルール増加時は hard limit ではなく summary 強化
-
-最終更新: 2026-02-19

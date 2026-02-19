@@ -38,5 +38,3 @@ Claustrum の監査ログは「改ざんしにくく、追跡しやすい」を�
 - `GET /v1/audit/export`
 - 形式: `csv` / `json`
 - 権限: workspace admin 以上
-
-最終更新: 2026-02-19

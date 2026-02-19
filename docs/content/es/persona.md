@@ -23,5 +23,3 @@ No cambia permisos ni roles.
 3. Si te sirve, aplica `Apply Recommended Persona`
 
 El cambio queda auditado como `user.persona.changed`.
-
-Última actualización: 2026-02-19

@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { LanguageSwitcher } from './components/language-switcher';
+import { DocsHomeLink } from './components/docs-home-link';
 import { getAvailableRouteLanguages } from '../lib/docs';
 import './globals.css';
 
@@ -13,6 +13,8 @@ export const metadata: Metadata = {
 const GITHUB_REPO_URL = 'https://github.com/stephen-kim/claustrum';
 const GITHUB_STARS_BADGE_URL =
   'https://img.shields.io/github/stars/stephen-kim/claustrum?style=social&label=Star';
+const DOCS_BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || '';
+const LOGO_SRC = `${DOCS_BASE_PATH}/brand/logo-white.svg`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const availableLanguages = getAvailableRouteLanguages();
@@ -23,9 +25,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <header className="border-b border-border/70 bg-background/70 backdrop-blur">
           <div className="container-docs flex items-center justify-between gap-3 py-4">
             <div className="flex items-center gap-3">
-              <Link href="/" className="inline-flex items-center gap-3 text-foreground no-underline">
+              <DocsHomeLink className="inline-flex items-center gap-3 text-foreground no-underline">
                 <Image
-                  src="/brand/logo-white.svg"
+                  src={LOGO_SRC}
                   alt="Claustrum"
                   width={28}
                   height={28}
@@ -36,7 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <p className="text-lg font-semibold leading-none">Claustrum Docs</p>
                   <p className="subtitle">GitHub Pages documentation for Claustrum</p>
                 </div>
-              </Link>
+              </DocsHomeLink>
             </div>
 
             <div className="flex items-center gap-2">

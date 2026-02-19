@@ -69,5 +69,3 @@ Ejemplos:
 - `github.repos.synced`
 - `github.projects.auto_created`
 - `github.projects.auto_linked`
-
-Última actualización: 2026-02-19

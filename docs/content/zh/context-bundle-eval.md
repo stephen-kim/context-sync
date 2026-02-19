@@ -79,5 +79,3 @@ pnpm eval:bundle -- --judge true
 - 不打印/保存 API key
 - `workspace_key`/`project_key` 可用于报告
 - 认证使用 `MEMORY_CORE_API_KEY`
-
-最后更新: 2026-02-19

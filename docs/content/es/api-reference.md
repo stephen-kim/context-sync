@@ -17,5 +17,3 @@ Ese spec se genera automáticamente desde `apps/memory-core/src/http/routes/**/*
 - Para reglas de acceso, revisa:
   - [Auth and Roles](auth-and-roles)
   - [Role Resolution Specification](role-resolution-spec)
-
-Última actualización: 2026-02-19

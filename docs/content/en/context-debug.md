@@ -36,5 +36,3 @@ From Admin UI Context Debug:
 - Close/Reopen active work
 
 These controls are intentionally explicit to keep automation transparent and admin-controlled.
-
-Last Updated: 2026-02-18

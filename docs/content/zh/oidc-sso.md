@@ -58,5 +58,3 @@ Admin UI:
 - 不要用 email 作为稳定身份键
 - 尽量使用 `claim_groups_format=id`
 - 定期轮换 client secret
-
-最后更新: 2026-02-19

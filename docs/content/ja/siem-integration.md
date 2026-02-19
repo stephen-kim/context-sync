@@ -45,5 +45,3 @@ HMAC_SHA256(secret, raw_json_body)
 - Sink 作成
 - Test delivery
 - 配信状態確認（queued/sending/delivered/failed）
-
-最終更新: 2026-02-19

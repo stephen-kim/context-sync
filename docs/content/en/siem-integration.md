@@ -48,5 +48,3 @@ Per sink `retry_policy`:
 - Create sink
 - Test delivery
 - Filtered delivery status view (`queued/sending/delivered/failed`)
-
-Last Updated: 2026-02-17

@@ -49,5 +49,3 @@
 - `GET /v1/workspaces/:key/github/permission-status`
 - `GET /v1/workspaces/:key/github/permission-preview`
 - `GET /v1/workspaces/:key/github/cache-status`
-
-最后更新: 2026-02-19

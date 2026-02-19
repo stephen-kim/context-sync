@@ -33,5 +33,3 @@ Claustrum 的审计系统以“可追踪 + 不可篡改”为核心。
 - `GET /v1/audit/export`
 - 支持 `csv` / `json`
 - 仅 workspace admin 可执行
-
-最后更新: 2026-02-19

@@ -14,7 +14,14 @@ const scalarConfiguration = {
   searchHotKey: 'k',
 };
 
+function resolveOpenApiUrl(): string {
+  const basePath = (process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/$/, '');
+  return `${basePath}/openapi.json`;
+}
+
 export default function ApiExplorerPage() {
+  const openApiUrl = resolveOpenApiUrl();
+
   return (
     <main className="container-docs grid gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
       <DocsSidebar lang="en" currentHref="/docs/api-reference" />
@@ -27,7 +34,7 @@ export default function ApiExplorerPage() {
           </p>
         </div>
 
-        <script id="api-reference" data-url="/openapi.json" data-configuration={JSON.stringify(scalarConfiguration)} />
+        <script id="api-reference" data-url={openApiUrl} data-configuration={JSON.stringify(scalarConfiguration)} />
         <Script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference" strategy="afterInteractive" />
       </section>
     </main>

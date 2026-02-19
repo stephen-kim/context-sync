@@ -47,5 +47,3 @@ Claustrum 先用 API Key 识别用户身份，再按 workspace / project 角色�
 - `decision.confirm`
 - `decision.reject`
 - 成员管理 / API Key 管理
-
-最后更新: 2026-02-19

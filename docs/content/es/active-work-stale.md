@@ -29,5 +29,3 @@ Se configura en Workspace Settings:
 
 - Manual: `POST /v1/projects/:key/recálculo-active-work`
 - Programado: job nocturno de recálculo
-
-Última actualización: 2026-02-19

@@ -218,6 +218,3 @@ These are GitHub repository/organization **secrets**, not local `.env` keys.
 - Keep `.env.example` minimal.
 - Put only active values in `.env`.
 - Prefer DB-stored integration settings from Admin UI unless you intentionally force ENV mode.
-
-
-Last Updated: 2026-02-18

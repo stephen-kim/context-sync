@@ -39,6 +39,20 @@ type ParsedGroup = {
 const DOCS_DIR = path.resolve(process.cwd(), '../../docs/content');
 const SIDEBAR_PATH = path.resolve(process.cwd(), '../../docs/meta/_sidebar.md');
 const lastUpdatedCache = new Map<string, string>();
+const DOCS_BASE_PATH = (process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/$/, '');
+
+function withBasePath(href: string): string {
+  if (!DOCS_BASE_PATH) {
+    return href;
+  }
+  if (!href.startsWith('/')) {
+    return href;
+  }
+  if (href === DOCS_BASE_PATH || href.startsWith(`${DOCS_BASE_PATH}/`)) {
+    return href;
+  }
+  return `${DOCS_BASE_PATH}${href}`;
+}
 
 function getContentLanguages(): RouteLanguage[] {
   if (!fs.existsSync(DOCS_DIR)) {
@@ -130,7 +144,7 @@ function replaceWikiLinks(markdown: string): string {
   const withWikiLinks = markdown.replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (_match, rawTarget, rawLabel) => {
     const target = String(rawTarget || '').trim();
     const label = String(rawLabel || target).trim();
-    return `[${label}](${toHref(target)})`;
+    return `[${label}](${withBasePath(toHref(target))})`;
   });
 
   return withWikiLinks.replace(/\]\(([^)]+)\)/g, (full, rawTarget) => {
@@ -141,23 +155,23 @@ function replaceWikiLinks(markdown: string): string {
       target.startsWith('http://') ||
       target.startsWith('https://') ||
       target.startsWith('mailto:') ||
-      target.startsWith('#') ||
-      target.startsWith('/')
+      target.startsWith('#')
     ) {
       return full;
     }
 
+    if (target.startsWith('/')) {
+      // Keep absolute links but make them project-pages aware on GitHub Pages.
+      return `](${withBasePath(target)})`;
+    }
+
     const clean = target.replace(/\.md$/i, '');
     if (/^[A-Za-z0-9._/-]+$/.test(clean)) {
-      return `](${toHref(clean)})`;
+      return `](${withBasePath(toHref(clean))})`;
     }
 
     return full;
   });
-}
-
-function stripLastUpdatedLine(markdown: string): string {
-  return markdown.replace(/^Last Updated:\s*.+\n?/gim, '').trimEnd();
 }
 
 function resolveLastUpdated(filePath: string): string {
@@ -193,7 +207,6 @@ function readDoc(language: RouteLanguage, fileName: string): DocItem | null {
 
   const filePath = path.join(DOCS_DIR, language, fileName);
   const raw = fs.readFileSync(filePath, 'utf8');
-  const cleaned = stripLastUpdatedLine(raw);
   const slugBase = slugify(fileName.replace(/\.md$/i, ''));
 
   return {
@@ -203,7 +216,7 @@ function readDoc(language: RouteLanguage, fileName: string): DocItem | null {
     slugBase,
     href: language === 'en' ? `/docs/${slugBase}` : `/docs/${language}/${slugBase}`,
     lang: language,
-    body: replaceWikiLinks(cleaned),
+    body: replaceWikiLinks(raw),
     lastUpdated: resolveLastUpdated(filePath),
   };
 }

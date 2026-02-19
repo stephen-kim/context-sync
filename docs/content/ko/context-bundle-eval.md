@@ -168,5 +168,3 @@ pnpm eval:report
 - 판사가 예기치 않게 건너뛰었습니다.
   - `--judge true` 확인
   - `EVAL_JUDGE_PROVIDER` 및 `EVAL_JUDGE_API_KEY`을 모두 확인하세요.
-
-최종 업데이트 날짜: 2026-02-18

@@ -54,5 +54,3 @@ pnpm db:seed
 pnpm dev
 pnpm test:workspace
 ```
-
-Última actualización: 2026-02-19

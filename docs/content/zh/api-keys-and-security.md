@@ -48,5 +48,3 @@ Claustrum 的 API Key 策略是：只显示一次，数据库只存哈希。
 - 按设备设置 `device_label`
 - 及时回收不用的 Key
 - 怀疑泄露时立即 reset
-
-最后更新: 2026-02-19

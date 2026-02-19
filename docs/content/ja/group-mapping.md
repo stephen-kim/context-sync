@@ -57,5 +57,3 @@ Group Mapping は、IdP グループを Claustrum の workspace/project ロー�
 - group 名ではなく stable group id を使う
 - 少数の高信頼マッピングから始める
 - priority を使って競合時の優先度を整理する
-
-最終更新: 2026-02-19

@@ -94,5 +94,3 @@ Rules:
 3. Confirm GitHub user link exists for the Claustrum user.
 4. Inspect permission preview for direct/team max result.
 5. Inspect webhook delivery status and recompute audit logs.
-
-Last Updated: 2026-02-17

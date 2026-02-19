@@ -24,5 +24,3 @@ Project -> Context Debug
 
 - 目的は観測と調整であり、権限制御の置き換えではありません。
 - raw 本文は引き続き保護され、bundle には snippet と evidence 参照のみ表示されます。
-
-最終更新: 2026-02-19

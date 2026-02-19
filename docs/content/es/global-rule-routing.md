@@ -48,5 +48,3 @@ Configuración principal:
 - `top_k` entre `3` y `8`
 - si hay ruido, subir `min_score`
 - añadir tags mejora routing por keyword
-
-Última actualización: 2026-02-19

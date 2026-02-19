@@ -48,5 +48,3 @@ Claustrum은 보안 관련 감사 트래픽과 일반 운영 감사 트래픽을
 - `security_stream_min_severity`(`low|medium|high`, 기본값 `medium`)
 
 전용 싱크가 설정되지 않은 경우 Claustrum은 활성화된 보안 가능 싱크로 대체됩니다.
-
-최종 업데이트 날짜: 2026-02-17

@@ -58,5 +58,3 @@ API keys, tokens bearer y bloques de clave privada se enmascaran antes de regist
 - no conecta al upstream: revisar `CLAUSTRUM_BASE_URL`, red y cadena TLS
 - no actualiza: revisar `~/.claustrum/state.json`, `update.lock`, `~/.claustrum/logs/error.log`
 - error de protocolo MCP: confirmar que stdout no incluye texto fuera de JSON-RPC
-
-Última actualización: 2026-02-19

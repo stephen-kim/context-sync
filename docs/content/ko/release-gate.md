@@ -57,4 +57,3 @@ Release Gate는 기본적으로 `MEMORY_CORE_RUN_SEED=false`을 설정하므로 
 - name: Release Gate
   run: RELEASE_GATE_RESET_DB=true ./scripts/release-gate.sh
 ```
-최종 업데이트 날짜: 2026-02-18

@@ -43,5 +43,3 @@ Global Rules 用于管理团队级规则（workspace）和个人规则（user）
 行为:
 - 超过推荐值: info 提示
 - 达到警告阈值: warn 提示
-
-最后更新: 2026-02-19

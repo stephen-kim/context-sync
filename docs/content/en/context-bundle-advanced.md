@@ -31,5 +31,3 @@ Example fields:
 
 - Raw full text is still excluded from bundle payloads.
 - Routing metadata is explanatory; it does not weaken workspace/project authorization.
-
-Last Updated: 2026-02-18

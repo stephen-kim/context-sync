@@ -53,5 +53,3 @@ flowchart TD
 - `delivery_id` 唯一约束保证幂等
 - 失败最多重试 3 次
 - 签名失败返回 `401`，并记录 `github.webhook.signature_failed`
-
-最后更新: 2026-02-19

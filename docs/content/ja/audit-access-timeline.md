@@ -64,5 +64,3 @@ Project:
 - action
 - date range
 - cursor pagination
-
-最終更新: 2026-02-19

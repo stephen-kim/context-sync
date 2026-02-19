@@ -54,5 +54,3 @@ Recommended rollout plan:
 1. Start with high-severity rules only.
 2. Observe for one week.
 3. Tune thresholds to reduce false positives.
-
-Last Updated: 2026-02-17

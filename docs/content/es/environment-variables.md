@@ -45,5 +45,3 @@ Ejemplo:
 - En `.env`, deja solo valores realmente usados.
 - No subas secretos al repositorio.
 - En CI, usa GitHub Secrets.
-
-Última actualización: 2026-02-19

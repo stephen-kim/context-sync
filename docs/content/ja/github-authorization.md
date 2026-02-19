@@ -68,5 +68,3 @@ admin > maintain > write > triage > read
 3. user link 確認
 4. permission preview 確認
 5. webhook 状態と監査ログ確認
-
-最終更新: 2026-02-19

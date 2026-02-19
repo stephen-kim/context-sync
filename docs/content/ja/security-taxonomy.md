@@ -45,5 +45,3 @@ Claustrum は、一般監査ログとセキュリティ関連イベントを分�
 - `security_stream_min_severity`（`low|medium|high`、既定: `medium`）
 
 専用 sink が未設定の場合は、有効な security 対応 sink にフォールバックします。
-
-最終更新: 2026-02-19

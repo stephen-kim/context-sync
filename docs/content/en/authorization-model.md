@@ -94,5 +94,3 @@ Definitions:
 - Workspace admin/owner override remains available for controlled operations.
 - Owner protection rules prevent accidental owner loss during automated removal.
 - All sensitive transitions must be visible in audit logs.
-
-Last Updated: 2026-02-17

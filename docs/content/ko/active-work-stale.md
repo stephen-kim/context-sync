@@ -29,5 +29,3 @@
 
 - 매뉴얼 : `POST /v1/projects/:key/recompute-active-work`
 - 예약됨: 야간 재계산 작업
-
-최종 업데이트 날짜: 2026-02-18

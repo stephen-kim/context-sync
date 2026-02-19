@@ -24,5 +24,3 @@ Features:
 
 - Debug views are for observability and tuning.
 - Raw full-text content remains guarded; bundle shows concise snippets + evidence refs.
-
-Last Updated: 2026-02-17

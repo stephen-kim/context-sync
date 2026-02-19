@@ -50,5 +50,3 @@ En **LLM Usage** puedes ver:
 - total de tokens de entrada/salida
 - coste estimado total
 - desglose por grupo
-
-Última actualización: 2026-02-19

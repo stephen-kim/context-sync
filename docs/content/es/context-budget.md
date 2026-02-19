@@ -41,5 +41,3 @@ Si hay muchas reglas, se usa summary para comprimir.
 - mantener `global_workspace_pct + global_user_pct` cerca de `0.20 ~ 0.35`
 - mantener retrieval en `>= 0.25` para consultas
 - crecer con summary, no con hard limits
-
-Última actualización: 2026-02-19

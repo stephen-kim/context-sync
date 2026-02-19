@@ -46,5 +46,3 @@ HMAC_SHA256(secret, raw_json_body)
 - 싱크 만들기
 - 테스트 납품
 - 필터링된 배송상태 보기(`queued/sending/delivered/failed`)
-
-최종 업데이트 날짜: 2026-02-17

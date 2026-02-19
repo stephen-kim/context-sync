@@ -36,5 +36,3 @@ Claustrum 검색은 기본적으로 하이브리드 검색을 사용하며 예�
 - `recency_boost`
 - `subpath_boost`
 - `final`
-
-최종 업데이트 날짜: 2026-02-17

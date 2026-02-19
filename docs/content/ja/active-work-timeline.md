@@ -44,5 +44,3 @@ Context Debug で以下を確認できます。
 - `active_work.manual_confirm`
 - `active_work.manual_close`
 - `active_work.manual_reopen`
-
-最終更新: 2026-02-19

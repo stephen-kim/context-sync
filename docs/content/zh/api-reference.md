@@ -17,5 +17,3 @@ OpenAPI 会从 `apps/memory-core/src/http/routes/**/*.ts` 自动生成，并包�
 - 权限相关规范见：
   - [Auth and Roles](auth-and-roles)
   - [Role Resolution Specification](role-resolution-spec)
-
-最后更新: 2026-02-19

@@ -44,5 +44,3 @@ Comportamiento:
 
 - sobre recomendado: aviso informativo
 - al superar warning threshold: aviso de posible pérdida de claridad
-
-Última actualización: 2026-02-19

@@ -40,5 +40,3 @@ Context Debug shows:
 - manual controls (maintainer+)
 
 Manual overrides are audited (`active_work.manual_confirm`, `active_work.manual_close`, `active_work.manual_reopen`).
-
-Last Updated: 2026-02-18

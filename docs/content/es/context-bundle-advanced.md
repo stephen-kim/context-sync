@@ -32,5 +32,3 @@ En `global.routing` puedes revisar:
 
 - El raw completo no se devuelve en bundle
 - La info de routing debug es explicativa; no cambia autorización
-
-Última actualización: 2026-02-19

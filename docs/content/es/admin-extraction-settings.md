@@ -60,5 +60,3 @@ Solo alteran la prioridad de ejecución del LLM.
 - `decision_auto_confirm_min_confidence = 0.90`
 - `decision_batch_size = 25`
 - `decision_backfill_days = 30`
-
-Última actualización: 2026-02-19

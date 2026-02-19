@@ -45,5 +45,3 @@ OIDC ユーザーは次の組で識別します。
 - OIDC gate に失敗したら、project 権限評価前に拒否
 - identity link は workspace 単位で分離
 - group claim 形式の不一致は設定リスクとして扱う
-
-最終更新: 2026-02-19

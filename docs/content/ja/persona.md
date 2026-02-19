@@ -23,5 +23,3 @@ Persona は、ユーザーごとに「どの文脈を強く出すか」を調整
 3. 必要なら `Apply Recommended Persona` を押す
 
 適用操作は `user.persona.changed` として監査されます。
-
-最終更新: 2026-02-19
